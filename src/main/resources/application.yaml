@@ -1,0 +1,17 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    org.hibernate.SQL: warn
+    org.hibernate.orm.jdbc.bind: warn
+
+jwt:
+  secret: "adapterz-spring-security-jwt-secret-key-for-practice-123456789"
+  access-token-expiration-millis: 36000000
+  refresh-token-expiration-millis: 604800000
