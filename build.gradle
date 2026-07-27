@@ -40,7 +40,7 @@ dependencies {
 	// -------------------------------------------------------------
 	// [수정] H2 주석 처리 및 MySQL Connector 추가
 	// -------------------------------------------------------------
-	runtimeOnly 'com.h2database:h2' // 기존 H2 인메모리 DB 주석 처리
+	runtimeOnly 'com.h2database:h2'
 	runtimeOnly 'com.mysql:mysql-connector-j' // MySQL DB 연결을 위한 드라이버 추가
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
