@@ -13,7 +13,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOrigins(
                         "http://127.0.0.1:5500",
                         "http://localhost:5500",
-                        "http://localhost:5174"
+                        "http://localhost:5174",
+                        "http://localhost:5173"
                 )
                 .allowedMethods("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*");

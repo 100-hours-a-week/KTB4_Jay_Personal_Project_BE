@@ -97,38 +97,23 @@ public class PostService {
 
     public Page<PostListResponse> getRankPost(Pageable pageable, RankingPeriod period) {
         LocalDateTime startTime = period.getStartDateTime();
-        Page<Post> posts = postRepository.findRankPosts(startTime, pageable);
+        Page<RankedPostProjection> posts = postRepository.findRankPosts(startTime, pageable);
         return posts.map(post -> {
-            User author = post.getAuthor();
-
-            if (post.isBlinded()) {
-                return PostListResponse.builder()
-                        .postId(post.getId())
-                        .title("블라인드 처리된 게시글입니다.")
-                        .authorNickname("블라인드 처리된 사용자입니다.")
-                        .commentCount(null)
-                        .viewCount(null)
-                        .createdAt(post.getCreatedAt())
-                        .updatedAt(null)
-                        .authorDeleted(author.isDeleted())
-                        .blinded(true)
-                        .build();
-            }
-
-            String authorNickname = author.isDeleted()
+            boolean authorDeleted = post.getAuthorDeleted() != null && post.getAuthorDeleted() == 1;
+            String authorNickname = authorDeleted
                     ? "알 수 없음"
-                    : author.getNickname();
+                    : post.getAuthorNickname();
 
             return PostListResponse.builder()
-                    .postId(post.getId())
+                    .postId(post.getPostId())
                     .title(post.getTitle())
                     .authorNickname(authorNickname)
-                    .likeCount(post.getLikeCount())
-                    .commentCount((long) post.getCommentCount())
-                    .viewCount((long) post.getViewCount())
+                    .likeCount(post.getPeriodLikeCount())
+                    .commentCount(post.getCommentCount())
+                    .viewCount(post.getPeriodViewCount())
                     .createdAt(post.getCreatedAt())
                     .updatedAt(post.getUpdatedAt())
-                    .authorDeleted(author.isDeleted())
+                    .authorDeleted(authorDeleted)
                     .blinded(false)
                     .build();
         });
@@ -156,6 +141,7 @@ public class PostService {
                     .authorDeleted(author.isDeleted())
                     .blinded(true)
                     .liked(null)
+                    .edited(false)
                     .createdAt(post.getCreatedAt())
                     .updatedAt(null)
                     .likeCount(null)
@@ -179,6 +165,7 @@ public class PostService {
                 .authorDeleted(author.isDeleted())
                 .blinded(false)
                 .liked(liked)
+                .edited(post.getUpdatedAt() != null)
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .likeCount(post.getLikeCount())

@@ -37,28 +37,46 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query(
             value = """
-            select p
-            from Post p
-            join fetch p.author
-            left join Like l
-                on l.post = p
-                and l.createdAt >= :startTime
-            left join PostView pv
-                on pv.post = p
-                and pv.viewedAt >= :startTime
-            where p.deletedAt is null
-              and p.blinded = false
-            group by p
-            order by count(distinct l.id) desc,
-                     count(distinct pv.id) desc,
-                     p.createdAt desc
+            SELECT
+                p.post_id AS postId,
+                p.title AS title,
+                u.nickname AS authorNickname,
+                CASE WHEN u.deleted_at IS NULL THEN false ELSE true END AS authorDeleted,
+                p.like_count AS likeCount,
+                p.comment_count AS commentCount,
+                p.view_count AS viewCount,
+                p.created_at AS createdAt,
+                p.updated_at AS updatedAt,
+                COALESCE(l.like_count, 0) AS periodLikeCount,
+                COALESCE(v.view_count, 0) AS periodViewCount
+            FROM posts p
+            JOIN users u ON u.user_id = p.author_id
+            LEFT JOIN (
+                SELECT post_id, COUNT(*) AS like_count
+                FROM likes
+                WHERE created_at >= :startTime
+                GROUP BY post_id
+            ) l ON l.post_id = p.post_id
+            LEFT JOIN (
+                SELECT post_id, COUNT(*) AS view_count
+                FROM post_views
+                WHERE viewed_at >= :startTime
+                GROUP BY post_id
+            ) v ON v.post_id = p.post_id
+            WHERE p.deleted_at IS NULL
+              AND p.blinded = false
+            ORDER BY
+                COALESCE(l.like_count, 0) DESC,
+                COALESCE(v.view_count, 0) DESC,
+                p.created_at DESC
             """,
             countQuery = """
-            select count(p)
-            from Post p
-            where p.deletedAt is null
-              and p.blinded = false
-            """
+            SELECT COUNT(*)
+            FROM posts p
+            WHERE p.deleted_at IS NULL
+              AND p.blinded = false
+            """,
+            nativeQuery = true
     )
-    Page<Post> findRankPosts(@Param("startTime") LocalDateTime startTime, Pageable pageable);
+    Page<RankedPostProjection> findRankPosts(@Param("startTime") LocalDateTime startTime, Pageable pageable);
 }
