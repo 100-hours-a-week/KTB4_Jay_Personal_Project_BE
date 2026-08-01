@@ -21,6 +21,10 @@ mysql -uroot --vertical < explain-popular.sql
 ```bash
 mysql -uroot --vertical < explain-popular-optimized.sql
 ```
+## 개선 쿼리 EXPLAIN
+```bash
+mysql -uroot --vertical < explain-popular-batch.sql
+```
 
 ## 테스트 
 ```bash
