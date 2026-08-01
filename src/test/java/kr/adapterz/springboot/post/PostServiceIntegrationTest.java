@@ -41,6 +41,9 @@ class PostServiceIntegrationTest {
     private PostViewEventsRepository postViewEventsRepository;
 
     @Autowired
+    private RankingBatchService rankingBatchService;
+
+    @Autowired
     private EntityManager entityManager;
 
     private User user;
@@ -98,12 +101,13 @@ class PostServiceIntegrationTest {
         addLikes(likePost, 2, LocalDateTime.now());
         addLikes(viewPost, 1, LocalDateTime.now());
         addViewEvents(viewPost, 15, LocalDateTime.now());
+        rankingBatchService.refreshRanking(RankingPeriod.DAILY);
 
         Page<PostListResponse> result = postService.getRankPost(PageRequest.of(0, 5), RankingPeriod.DAILY);
 
         assertThat(result.getContent())
                 .extracting(PostListResponse::getPostId)
-                .containsSubsequence(viewPost.getId(), likePost.getId());
+                .containsExactly(viewPost.getId(), likePost.getId());
     }
 
     @Test
@@ -115,6 +119,7 @@ class PostServiceIntegrationTest {
         addLikes(oldPost, 5, yesterday);
         addViewEvents(oldPost, 20, yesterday);
         addLikes(todayPost, 1, LocalDateTime.now());
+        rankingBatchService.refreshRanking(RankingPeriod.DAILY);
 
         Page<PostListResponse> result = postService.getRankPost(PageRequest.of(0, 5), RankingPeriod.DAILY);
 
@@ -131,6 +136,7 @@ class PostServiceIntegrationTest {
 
         addLikes(lastWeekPost, 5, weekStart.minusSeconds(1));
         addLikes(thisWeekPost, 1, weekStart);
+        rankingBatchService.refreshRanking(RankingPeriod.WEEKLY);
 
         Page<PostListResponse> result = postService.getRankPost(PageRequest.of(0, 5), RankingPeriod.WEEKLY);
 

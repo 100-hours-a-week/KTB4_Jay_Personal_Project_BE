@@ -12,10 +12,26 @@ import java.time.LocalDateTime;
 public interface PostRankingRepository extends JpaRepository<PostRanking, Long> {
     void deleteByPeriodType(RankingPeriod periodType);
 
-    Page<PostRanking> findByPeriodTypeOrderByRankPositionAsc(
-            RankingPeriod periodType,
+    @Query(
+            value = """
+                    select r
+                    from PostRanking r
+                    join fetch r.post p
+                    join fetch p.author
+                    where r.periodType = :periodType
+                    order by r.rankPosition asc
+                    """,
+            countQuery = """
+                    select count(r)
+                    from PostRanking r
+                    where r.periodType = :periodType
+                    """
+    )
+    Page<PostRanking> findRankingsWithPostAndAuthor(
+            @Param("periodType") RankingPeriod periodType,
             Pageable pageable
     );
+
     @Modifying
     @Query(value = """
             INSERT INTO post_rankings (

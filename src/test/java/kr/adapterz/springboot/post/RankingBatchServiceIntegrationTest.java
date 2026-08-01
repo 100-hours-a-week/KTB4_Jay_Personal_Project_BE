@@ -111,7 +111,7 @@ class RankingBatchServiceIntegrationTest {
     }
 
     private Page<PostRanking> findDailyRankings() {
-        return postRankingRepository.findByPeriodTypeOrderByRankPositionAsc(
+        return postRankingRepository.findRankingsWithPostAndAuthor(
                 RankingPeriod.DAILY,
                 PageRequest.of(0, 10)
         );

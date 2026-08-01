@@ -33,6 +33,7 @@ public class PostService {
     private final LikeRepository likeRepository;
     private final PostViewRepository postViewRepository;
     private final PostReader postReader;
+    private final PostRankingRepository postRankingRepository;
 
     @Transactional
     public PostResponse createPost(
@@ -96,24 +97,25 @@ public class PostService {
     }
 
     public Page<PostListResponse> getRankPost(Pageable pageable, RankingPeriod period) {
-        LocalDateTime startTime = period.getStartDateTime();
-        Page<RankedPostProjection> posts = postRepository.findRankPosts(startTime, pageable);
-        return posts.map(post -> {
-            boolean authorDeleted = Boolean.TRUE.equals(post.getAuthorDeleted());
-            String authorNickname = authorDeleted
+        Page<PostRanking> rankings =
+                postRankingRepository.findRankingsWithPostAndAuthor(period, pageable);
+        return rankings.map(ranking -> {
+            Post post = ranking.getPost();
+            User author = post.getAuthor();
+            String authorNickname = author.isDeleted()
                     ? "알 수 없음"
-                    : post.getAuthorNickname();
+                    : author.getNickname();
 
             return PostListResponse.builder()
-                    .postId(post.getPostId())
+                    .postId(post.getId())
                     .title(post.getTitle())
                     .authorNickname(authorNickname)
-                    .likeCount(post.getPeriodLikeCount())
+                    .likeCount(ranking.getLikeCount())
                     .commentCount(post.getCommentCount())
-                    .viewCount(post.getPeriodViewCount())
+                    .viewCount(ranking.getViewCount())
                     .createdAt(post.getCreatedAt())
                     .updatedAt(post.getUpdatedAt())
-                    .authorDeleted(authorDeleted)
+                    .authorDeleted(author.isDeleted())
                     .blinded(false)
                     .build();
         });

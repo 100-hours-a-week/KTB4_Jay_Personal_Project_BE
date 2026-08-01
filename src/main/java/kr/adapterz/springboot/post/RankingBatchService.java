@@ -1,6 +1,7 @@
 package kr.adapterz.springboot.post;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,6 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class RankingBatchService {
 
     private final PostRankingRepository postRankingRepository;
+
+    @Scheduled(fixedRateString = "300000")
+    public void refreshRankingsBySchedule() {
+        refreshAllRankings();
+    }
 
     @Transactional
     public void refreshRanking(RankingPeriod period) {
