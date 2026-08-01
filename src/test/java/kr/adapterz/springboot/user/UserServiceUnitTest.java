@@ -95,7 +95,7 @@ public class UserServiceUnitTest {
 
         assertThatThrownBy(()-> userService.login(request))
                 .isInstanceOf(UnauthorizedException.class)
-                .hasMessageContaining("deleted_user");
+                .hasMessageContaining("login_failed");
     }
 
     @Test

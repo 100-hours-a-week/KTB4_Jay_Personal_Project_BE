@@ -26,7 +26,7 @@ import java.util.Optional;
 @Service
 @Transactional(readOnly = true)
 public class PostService {
-
+    private final PostViewEventsRepository postViewEventsRepository;
     private final PostRepository postRepository;
     private final UserReader userReader;
     private final CommentRepository commentRepository;
@@ -99,7 +99,7 @@ public class PostService {
         LocalDateTime startTime = period.getStartDateTime();
         Page<RankedPostProjection> posts = postRepository.findRankPosts(startTime, pageable);
         return posts.map(post -> {
-            boolean authorDeleted = post.getAuthorDeleted() != null && post.getAuthorDeleted() == 1;
+            boolean authorDeleted = Boolean.TRUE.equals(post.getAuthorDeleted());
             String authorNickname = authorDeleted
                     ? "알 수 없음"
                     : post.getAuthorNickname();
@@ -125,9 +125,11 @@ public class PostService {
         Post post = postReader.getActivePostWithAuthor(postId);
         User author = post.getAuthor();
         boolean liked = likeRepository.existsByPost_IdAndUser_Id(postId, currentUserId);
+        Long viewCount = post.getViewCount();
 
         if (!post.isBlinded() && currentUserId != null) {
             increaseViewCount(post, currentUserId);
+            viewCount = postRepository.findViewCountById(postId);
         }
 
         if (post.isBlinded()){
@@ -169,7 +171,7 @@ public class PostService {
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .likeCount(post.getLikeCount())
-                .viewCount(post.getViewCount())
+                .viewCount(viewCount)
                 .commentCount(post.getCommentCount())
                 .comments(getComments(postId))
                 .build();
@@ -274,14 +276,16 @@ public class PostService {
             }
             //24시간 지났으면 조회수 올리고 viewedAt 업데이트하고 끝
             // 어차피 업데이트만 해도 더티체킹으로 Update 가능
-            post.increaseViewCount();
+            postRepository.increaseViewCount(post.getId());
             postView.updatedViewedAt(now);
+            postViewEventsRepository.save(new PostViewEvents(post, user, now));
             return;
         }
 
         // 상자에 진짜 postView가 없다면 viewcount를 1 증가시키고 저장
 
-        post.increaseViewCount();
+        postRepository.increaseViewCount(post.getId());
         postViewRepository.save(new PostView(post, user, now));
+        postViewEventsRepository.save(new PostViewEvents(post, user, now));
     }
 }

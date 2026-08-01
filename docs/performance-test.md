@@ -21,3 +21,9 @@ mysql -uroot --vertical < explain-popular.sql
 ```bash
 mysql -uroot --vertical < explain-popular-optimized.sql
 ```
+
+## 테스트 
+```bash
+./gradlew test --tests kr.adapterz.springboot.post.PostServiceIntegrationTest jacocoTestReport
+open build/reports/jacoco/test/html/index.html
+```

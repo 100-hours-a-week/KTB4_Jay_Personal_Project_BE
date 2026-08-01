@@ -52,10 +52,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                         auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/users/register", "/users/login", "/users/token/refresh").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/posts/**").permitAll()
-                                .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/posts").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/posts/rank").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/posts/*").authenticated()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().hasRole("USER")
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

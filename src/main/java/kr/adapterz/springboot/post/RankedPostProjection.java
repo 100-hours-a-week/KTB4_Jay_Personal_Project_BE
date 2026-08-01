@@ -6,7 +6,7 @@ public interface RankedPostProjection {
     Long getPostId();
     String getTitle();
     String getAuthorNickname();
-    Integer getAuthorDeleted();
+    Boolean getAuthorDeleted();
     Long getLikeCount();
     Long getCommentCount();
     Long getViewCount();

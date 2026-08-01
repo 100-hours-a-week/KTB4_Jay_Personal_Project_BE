@@ -3,6 +3,7 @@ package kr.adapterz.springboot.post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -35,6 +36,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             """)
     Optional<Post> findByIdWithAuthor(@Param("postId") Long postId);
 
+    @Query("select p.likeCount from Post p where p.id = :postId")
+    Long findLikeCountById(@Param("postId") Long postId);
+
+    @Query("select p.viewCount from Post p where p.id = :postId")
+    Long findViewCountById(@Param("postId") Long postId);
+
     @Query(
             value = """
             SELECT
@@ -59,15 +66,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             ) l ON l.post_id = p.post_id
             LEFT JOIN (
                 SELECT post_id, COUNT(*) AS view_count
-                FROM post_views
+                FROM post_view_events
                 WHERE viewed_at >= :startTime
                 GROUP BY post_id
             ) v ON v.post_id = p.post_id
             WHERE p.deleted_at IS NULL
               AND p.blinded = false
             ORDER BY
-                COALESCE(l.like_count, 0) DESC,
-                COALESCE(v.view_count, 0) DESC,
+                (COALESCE(l.like_count, 0) * 10 + COALESCE(v.view_count, 0)) DESC,
                 p.created_at DESC
             """,
             countQuery = """
@@ -79,4 +85,16 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             nativeQuery = true
     )
     Page<RankedPostProjection> findRankPosts(@Param("startTime") LocalDateTime startTime, Pageable pageable);
+
+    @Modifying
+    @Query("update Post p set p.likeCount = p.likeCount + 1 where p.id = :postId")
+    int increaseLikeCount(@Param("postId") Long postId);
+
+    @Modifying
+    @Query("update Post p set p.likeCount = case when p.likeCount > 0 then p.likeCount - 1 else 0 end where p.id = :postId")
+    int decreaseLikeCount(@Param("postId") Long postId);
+
+    @Modifying
+    @Query("update Post p set p.viewCount = p.viewCount + 1 where p.id = :postId")
+    int increaseViewCount(@Param("postId") Long postId);
 }

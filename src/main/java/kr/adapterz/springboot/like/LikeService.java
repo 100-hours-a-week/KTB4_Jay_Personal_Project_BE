@@ -1,6 +1,7 @@
 package kr.adapterz.springboot.like;
 
 import kr.adapterz.springboot.post.PostReader;
+import kr.adapterz.springboot.post.PostRepository;
 import kr.adapterz.springboot.user.UserReader;
 import org.springframework.transaction.annotation.Transactional;
 import kr.adapterz.springboot.global.exception.ConflictException;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 @Transactional(readOnly = true)
 public class LikeService {
     private final LikeRepository likeRepository;
+    private final PostRepository postRepository;
     private final PostReader postReader;
     private final UserReader userReader;
 
@@ -32,9 +34,9 @@ public class LikeService {
         }
 
         likeRepository.save(new Like(post, user));
-        post.increaseLikeCount();
+        postRepository.increaseLikeCount(postId);
 
-        return new LikeResponse(post.getLikeCount());
+        return new LikeResponse(postRepository.findLikeCountById(postId));
     }
 
     // 좋아요 취소
@@ -47,8 +49,8 @@ public class LikeService {
         Post post = postReader.getActivePost(postId);
 
         likeRepository.delete(like);
-        post.decreaseLikeCount();
+        postRepository.decreaseLikeCount(postId);
 
-        return new LikeResponse(post.getLikeCount());
+        return new LikeResponse(postRepository.findLikeCountById(postId));
     }
 }
