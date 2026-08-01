@@ -1,7 +1,6 @@
 package kr.adapterz.springboot.post;
 
 import jakarta.persistence.*;
-import kr.adapterz.springboot.user.User;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
