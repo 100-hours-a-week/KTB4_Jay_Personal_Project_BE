@@ -59,3 +59,27 @@ jobs:
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/community-backend:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/community-backend:${{ github.sha }}
+
+  deploy:
+    needs: build-and-push
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Prepare SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "${{ secrets.SERVER_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy backend
+        run: |
+          ssh -i ~/.ssh/id_rsa \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+              set -e
+              cd ~/community-deploy
+              docker compose pull backend
+              docker compose up -d --no-deps backend
+              docker compose ps backend
+          EOF
