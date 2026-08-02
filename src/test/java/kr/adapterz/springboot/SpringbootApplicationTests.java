@@ -1,5 +1,5 @@
 package kr.adapterz.springboot;
-
+// 주석
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
