@@ -31,3 +31,7 @@ mysql -uroot --vertical < explain-popular-batch.sql
 ./gradlew test --tests kr.adapterz.springboot.post.PostServiceIntegrationTest jacocoTestReport
 open build/reports/jacoco/test/html/index.html
 ```
+## 실행
+```bash
+./run-local.sh
+```
