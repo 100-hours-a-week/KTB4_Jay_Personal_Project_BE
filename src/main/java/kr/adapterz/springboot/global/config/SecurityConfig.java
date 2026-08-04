@@ -51,6 +51,12 @@ public class SecurityConfig {
                 // 그 외의 요청은 모두 인가 검사를 합니다.
                 .authorizeHttpRequests(
                         auth -> auth
+                        .requestMatchers(
+                                "/users/register",
+                                 "/users/login",
+                                "/ws",
+                                "/ws/**"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/users/register", "/users/login", "/users/token/refresh").permitAll()

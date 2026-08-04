@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
         indexes = {
                 @Index(name = "idx_post_views_user_id", columnList = "user_id"),
                 @Index(name = "idx_post_views_post_id", columnList = "post_id"),
-                @Index(name = "idx_post_views_viewed_at_post_id", columnList = "created_at,post_id")
+                @Index(name = "idx_post_views_viewed_at_post_id", columnList = "viewed_at,post_id")
         }
 
 )
