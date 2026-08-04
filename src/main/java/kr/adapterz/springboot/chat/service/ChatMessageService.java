@@ -9,6 +9,7 @@ import kr.adapterz.springboot.post.PostRepository;
 import kr.adapterz.springboot.user.User;
 import kr.adapterz.springboot.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChatMessageService {
 
     private final ChatMessageRepository chatMessageRepository;
@@ -59,6 +61,12 @@ public class ChatMessageService {
 
         ChatMessage savedMessage =
                 chatMessageRepository.save(chatMessage);
+
+        log.info("Chat message persisted messageId={} postId={} senderId={}",
+                savedMessage.getId(),
+                post.getId(),
+                sender.getId()
+        );
 
         return ChatMessageResponse.from(savedMessage);
     }

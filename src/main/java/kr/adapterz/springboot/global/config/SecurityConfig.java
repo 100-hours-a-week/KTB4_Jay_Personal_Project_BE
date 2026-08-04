@@ -62,6 +62,7 @@ public class SecurityConfig {
                         .requestMatchers("/users/register", "/users/login", "/users/token/refresh").permitAll()
                         .requestMatchers(HttpMethod.GET, "/posts").permitAll()
                         .requestMatchers(HttpMethod.GET, "/posts/rank").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/posts/*/chat/messages").permitAll()
                         .requestMatchers(HttpMethod.GET, "/posts/*").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().hasRole("USER")
