@@ -9,6 +9,7 @@ import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import java.time.LocalDateTime;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,12 +23,18 @@ public class PostRankingBatchScheduler {
     @SchedulerLock(
             name = "postRankingJob",
             lockAtMostFor = "PT10M",
-            lockAtLeastFor = "PT30S"
+            lockAtLeastFor = "PT4M30S"
     )
     public void runPostRankingJob() {
         try {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime runSlot = now
+                    .withMinute(now.getMinute() / 5 * 5)
+                    .withSecond(0)
+                    .withNano(0);
+
             JobParameters jobParameters = new JobParametersBuilder()
-                    .addLong("requestTime", System.currentTimeMillis())
+                    .addString("runSlot", runSlot.toString())
                     .toJobParameters();
 
             log.info("Post ranking batch job started");

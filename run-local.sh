@@ -4,4 +4,6 @@ set -a
 source .env
 set +a
 
-./gradlew bootRun
+PORT=${1:-8080}
+
+./gradlew bootRun --args="--server.port=${PORT}"
