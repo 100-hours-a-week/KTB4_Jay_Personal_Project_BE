@@ -2,6 +2,7 @@ package kr.adapterz.springboot.post;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -18,6 +19,11 @@ public class PostRankingBatchScheduler {
     private final Job postRankingJob;
 
     @Scheduled(fixedRateString = "300000")
+    @SchedulerLock(
+            name = "postRankingJob",
+            lockAtMostFor = "PT10M",
+            lockAtLeastFor = "PT30S"
+    )
     public void runPostRankingJob() {
         try {
             JobParameters jobParameters = new JobParametersBuilder()
