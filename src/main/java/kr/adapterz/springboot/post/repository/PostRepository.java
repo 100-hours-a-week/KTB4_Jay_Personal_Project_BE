@@ -1,5 +1,7 @@
-package kr.adapterz.springboot.post;
+package kr.adapterz.springboot.post.repository;
 
+import kr.adapterz.springboot.post.RankedPostProjection;
+import kr.adapterz.springboot.post.entity.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

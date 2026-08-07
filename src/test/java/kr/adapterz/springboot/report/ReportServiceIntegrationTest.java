@@ -1,7 +1,7 @@
 package kr.adapterz.springboot.report;
 
-import kr.adapterz.springboot.post.Post;
-import kr.adapterz.springboot.post.PostRepository;
+import kr.adapterz.springboot.post.entity.Post;
+import kr.adapterz.springboot.post.repository.PostRepository;
 import kr.adapterz.springboot.report.dto.ReportRequest;
 import kr.adapterz.springboot.report.dto.ReportResponse;
 import kr.adapterz.springboot.user.User;

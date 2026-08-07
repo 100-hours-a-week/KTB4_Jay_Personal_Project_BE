@@ -1,5 +1,6 @@
-package kr.adapterz.springboot.post;
+package kr.adapterz.springboot.post.repository;
 
+import kr.adapterz.springboot.post.entity.PostView;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

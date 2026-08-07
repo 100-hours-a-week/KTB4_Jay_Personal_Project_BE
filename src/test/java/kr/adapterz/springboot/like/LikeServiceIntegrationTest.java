@@ -1,8 +1,8 @@
 package kr.adapterz.springboot.like;
 
 import kr.adapterz.springboot.like.dto.LikeResponse;
-import kr.adapterz.springboot.post.Post;
-import kr.adapterz.springboot.post.PostRepository;
+import kr.adapterz.springboot.post.entity.Post;
+import kr.adapterz.springboot.post.repository.PostRepository;
 import kr.adapterz.springboot.user.User;
 import kr.adapterz.springboot.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;

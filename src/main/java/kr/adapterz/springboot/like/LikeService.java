@@ -1,13 +1,13 @@
 package kr.adapterz.springboot.like;
 
-import kr.adapterz.springboot.post.PostReader;
-import kr.adapterz.springboot.post.PostRepository;
+import kr.adapterz.springboot.post.entity.PostReader;
+import kr.adapterz.springboot.post.repository.PostRepository;
 import kr.adapterz.springboot.user.UserReader;
 import org.springframework.transaction.annotation.Transactional;
 import kr.adapterz.springboot.global.exception.ConflictException;
 import kr.adapterz.springboot.global.exception.NotFoundException;
 import kr.adapterz.springboot.like.dto.LikeResponse;
-import kr.adapterz.springboot.post.Post;
+import kr.adapterz.springboot.post.entity.Post;
 import kr.adapterz.springboot.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

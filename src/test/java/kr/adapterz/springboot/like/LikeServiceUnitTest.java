@@ -2,8 +2,8 @@ package kr.adapterz.springboot.like;
 
 import kr.adapterz.springboot.global.exception.ConflictException;
 import kr.adapterz.springboot.global.exception.NotFoundException;
-import kr.adapterz.springboot.post.Post;
-import kr.adapterz.springboot.post.PostReader;
+import kr.adapterz.springboot.post.entity.Post;
+import kr.adapterz.springboot.post.entity.PostReader;
 import kr.adapterz.springboot.user.User;
 import kr.adapterz.springboot.user.UserReader;
 import org.junit.jupiter.api.Test;

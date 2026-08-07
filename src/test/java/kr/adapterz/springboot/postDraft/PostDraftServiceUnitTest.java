@@ -2,7 +2,7 @@ package kr.adapterz.springboot.postDraft;
 
 import kr.adapterz.springboot.global.exception.BadRequestException;
 import kr.adapterz.springboot.global.exception.NotFoundException;
-import kr.adapterz.springboot.post.PostRepository;
+import kr.adapterz.springboot.post.repository.PostRepository;
 import kr.adapterz.springboot.postDraft.dto.DraftSaveRequest;
 import kr.adapterz.springboot.user.User;
 import kr.adapterz.springboot.user.UserReader;

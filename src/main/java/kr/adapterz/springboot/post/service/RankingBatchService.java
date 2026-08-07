@@ -1,5 +1,7 @@
-package kr.adapterz.springboot.post;
+package kr.adapterz.springboot.post.service;
 
+import kr.adapterz.springboot.post.RankingPeriod;
+import kr.adapterz.springboot.post.repository.PostRankingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

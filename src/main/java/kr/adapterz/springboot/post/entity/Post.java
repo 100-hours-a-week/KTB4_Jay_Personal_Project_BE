@@ -1,4 +1,4 @@
-package kr.adapterz.springboot.post;
+package kr.adapterz.springboot.post.entity;
 
 import jakarta.persistence.*;
 import kr.adapterz.springboot.user.User;

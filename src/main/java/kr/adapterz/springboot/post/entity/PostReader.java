@@ -1,6 +1,7 @@
-package kr.adapterz.springboot.post;
+package kr.adapterz.springboot.post.entity;
 
 import kr.adapterz.springboot.global.exception.NotFoundException;
+import kr.adapterz.springboot.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

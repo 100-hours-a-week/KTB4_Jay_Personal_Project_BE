@@ -1,7 +1,7 @@
 package kr.adapterz.springboot.comment;
 
 import jakarta.persistence.*;
-import kr.adapterz.springboot.post.Post;
+import kr.adapterz.springboot.post.entity.Post;
 import kr.adapterz.springboot.user.User;
 import lombok.AccessLevel;
 import lombok.Getter;

@@ -1,8 +1,10 @@
-package kr.adapterz.springboot.post;
+package kr.adapterz.springboot.post.controller;
 
 import jakarta.validation.Valid;
 import kr.adapterz.springboot.global.ApiResponse;
 import kr.adapterz.springboot.global.security.CustomUserPrincipal;
+import kr.adapterz.springboot.post.service.PostService;
+import kr.adapterz.springboot.post.RankingPeriod;
 import kr.adapterz.springboot.post.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,7 +13,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.method.P;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 

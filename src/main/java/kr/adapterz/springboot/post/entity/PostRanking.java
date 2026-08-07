@@ -1,6 +1,7 @@
-package kr.adapterz.springboot.post;
+package kr.adapterz.springboot.post.entity;
 
 import jakarta.persistence.*;
+import kr.adapterz.springboot.post.RankingPeriod;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

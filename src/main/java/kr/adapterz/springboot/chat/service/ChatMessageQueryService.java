@@ -2,7 +2,7 @@ package kr.adapterz.springboot.chat.service;
 
 import kr.adapterz.springboot.chat.dto.ChatMessageResponse;
 import kr.adapterz.springboot.chat.repository.ChatMessageRepository;
-import kr.adapterz.springboot.post.PostRepository;
+import kr.adapterz.springboot.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

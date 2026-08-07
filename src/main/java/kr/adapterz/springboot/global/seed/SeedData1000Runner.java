@@ -2,10 +2,10 @@ package kr.adapterz.springboot.global.seed;
 
 import kr.adapterz.springboot.like.Like;
 import kr.adapterz.springboot.like.LikeRepository;
-import kr.adapterz.springboot.post.Post;
-import kr.adapterz.springboot.post.PostRepository;
-import kr.adapterz.springboot.post.PostView;
-import kr.adapterz.springboot.post.PostViewRepository;
+import kr.adapterz.springboot.post.entity.Post;
+import kr.adapterz.springboot.post.repository.PostRepository;
+import kr.adapterz.springboot.post.entity.PostView;
+import kr.adapterz.springboot.post.repository.PostViewRepository;
 import kr.adapterz.springboot.user.User;
 import kr.adapterz.springboot.user.UserRepository;
 import lombok.RequiredArgsConstructor;

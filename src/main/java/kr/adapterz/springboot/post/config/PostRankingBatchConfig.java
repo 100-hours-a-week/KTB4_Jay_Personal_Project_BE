@@ -1,5 +1,7 @@
-package kr.adapterz.springboot.post;
+package kr.adapterz.springboot.post.config;
 
+import kr.adapterz.springboot.post.service.RankingBatchService;
+import kr.adapterz.springboot.post.RankingPeriod;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;

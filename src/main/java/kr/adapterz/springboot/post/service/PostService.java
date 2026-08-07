@@ -1,13 +1,18 @@
-package kr.adapterz.springboot.post;
+package kr.adapterz.springboot.post.service;
 
 import kr.adapterz.springboot.comment.Comment;
 import kr.adapterz.springboot.comment.CommentRepository;
 import kr.adapterz.springboot.comment.dto.CommentDetailResponse;
 import kr.adapterz.springboot.comment.dto.ReplyCreateResponse;
-import kr.adapterz.springboot.global.exception.BadRequestException;
 import kr.adapterz.springboot.global.exception.ForbiddenException;
 import kr.adapterz.springboot.like.LikeRepository;
+import kr.adapterz.springboot.post.*;
 import kr.adapterz.springboot.post.dto.*;
+import kr.adapterz.springboot.post.entity.*;
+import kr.adapterz.springboot.post.repository.PostRankingRepository;
+import kr.adapterz.springboot.post.repository.PostRepository;
+import kr.adapterz.springboot.post.repository.PostViewEventsRepository;
+import kr.adapterz.springboot.post.repository.PostViewRepository;
 import kr.adapterz.springboot.user.User;
 import kr.adapterz.springboot.user.UserReader;
 import lombok.RequiredArgsConstructor;
