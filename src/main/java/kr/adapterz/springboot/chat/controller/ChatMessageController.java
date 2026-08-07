@@ -3,6 +3,7 @@ package kr.adapterz.springboot.chat.controller;
 import jakarta.validation.Valid;
 import kr.adapterz.springboot.chat.dto.ChatMessageRequest;
 import kr.adapterz.springboot.chat.dto.ChatMessageResponse;
+import kr.adapterz.springboot.chat.pubsub.ChatMessagePublisher;
 import kr.adapterz.springboot.chat.service.ChatMessageService;
 import kr.adapterz.springboot.global.security.CustomUserPrincipal;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,6 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
@@ -23,7 +23,7 @@ import java.security.Principal;
 public class ChatMessageController {
 
     private final ChatMessageService chatMessageService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final ChatMessagePublisher chatMessagePublisher;
 
     @MessageMapping("/posts/{postId}/chat/messages")
     public void sendMessage(
@@ -44,15 +44,13 @@ public class ChatMessageController {
                         request
                 );
 
-        String destination =
-                "/topic/posts/" + postId + "/chat";
-
-        log.info("Chat message saved messageId={} postId={}", response.messageId(), postId);
-
-        messagingTemplate.convertAndSend(
-                destination,
-                response
+        log.info(
+                "Chat message saved messageId={} postId={}",
+                response.messageId(),
+                postId
         );
+
+        chatMessagePublisher.publish(response);
     }
 
     private Long getCurrentUserId(Principal principal) {
