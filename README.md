@@ -158,59 +158,130 @@
 
 ```text
 src/main/java/kr/adapterz/springboot
+├── SpringbootApplication.java
 ├── auth
+│   ├── RefreshToken.java
+│   ├── RefreshTokenRepository.java
 │   ├── TokenController.java
 │   ├── TokenService.java
-│   ├── RefreshToken.java
-│   └── RefreshTokenRepository.java
+│   └── dto
+│       ├── TokenRefreshRequest.java
+│       └── TokenRefreshResponse.java
 ├── chat
 │   ├── controller
+│   │   ├── ChatMessageController.java
+│   │   └── ChatMessageQueryController.java
 │   ├── dto
+│   │   ├── ChatMessageRequest.java
+│   │   └── ChatMessageResponse.java
 │   ├── entity
+│   │   └── ChatMessage.java
 │   ├── pubsub
+│   │   ├── ChatMessagePublisher.java
+│   │   └── ChatMessageSubscriber.java
 │   ├── repository
+│   │   └── ChatMessageRepository.java
 │   └── service
+│       ├── ChatMessageQueryService.java
+│       └── ChatMessageService.java
 ├── comment
 │   ├── Comment.java
 │   ├── CommentController.java
 │   ├── CommentRepository.java
 │   ├── CommentService.java
 │   └── dto
+│       ├── CommentCreateRequest.java
+│       ├── CommentCreateResponse.java
+│       ├── CommentDeleteResponse.java
+│       ├── CommentDetailResponse.java
+│       ├── CommentUpdateRequest.java
+│       ├── CommentUpdateResponse.java
+│       ├── ReplyCreateRequest.java
+│       ├── ReplyCreateResponse.java
+│       └── ReplyUpdateRequest.java
 ├── global
 │   ├── ApiResponse.java
 │   ├── GlobalExceptionHandler.java
 │   ├── config
+│   │   ├── SecurityConfig.java
+│   │   ├── ShedLockConfig.java
+│   │   └── WebConfig.java
 │   ├── exception
+│   │   ├── BadRequestException.java
+│   │   ├── ConflictException.java
+│   │   ├── ForbiddenException.java
+│   │   ├── NotFoundException.java
+│   │   ├── UnauthorizedException.java
+│   │   └── UserNotFoundException.java
 │   ├── redis
+│   │   └── RedisConfig.java
 │   ├── security
+│   │   ├── CustomUserPrincipal.java
+│   │   ├── JwtAuthenticationFilter.java
+│   │   ├── JwtTokenProvider.java
+│   │   └── handler
+│   │       ├── CustomAccessDeniedHandler.java
+│   │       └── CustomAuthenticationEntryPoint.java
 │   ├── seed
+│   │   ├── SeedData10000Runner.java
+│   │   ├── SeedData1000Runner.java
+│   │   └── SeedDataRunner.java
 │   └── websocket
+│       ├── StompJwtChannelInterceptor.java
+│       └── WebSocketConfig.java
 ├── like
 │   ├── Like.java
 │   ├── LikeController.java
 │   ├── LikeRepository.java
-│   └── LikeService.java
+│   ├── LikeService.java
+│   └── dto
+│       └── LikeResponse.java
 ├── post
 │   ├── PostRankingBatchScheduler.java
+│   ├── RankedPostProjection.java
 │   ├── RankingPeriod.java
 │   ├── config
+│   │   └── PostRankingBatchConfig.java
 │   ├── controller
+│   │   └── PostController.java
 │   ├── dto
+│   │   ├── PostDetailResponse.java
+│   │   ├── PostListResponse.java
+│   │   ├── PostRequest.java
+│   │   ├── PostResponse.java
+│   │   ├── UpdatePostRequest.java
+│   │   └── UpdatePostResponse.java
 │   ├── entity
+│   │   ├── Post.java
+│   │   ├── PostRanking.java
+│   │   ├── PostReader.java
+│   │   ├── PostView.java
+│   │   └── PostViewEvents.java
 │   ├── repository
+│   │   ├── PostRankingRepository.java
+│   │   ├── PostRepository.java
+│   │   ├── PostViewEventsRepository.java
+│   │   └── PostViewRepository.java
 │   └── service
+│       ├── PostService.java
+│       └── RankingBatchService.java
 ├── postDraft
 │   ├── PostDraft.java
 │   ├── PostDraftController.java
 │   ├── PostDraftRepository.java
 │   ├── PostDraftService.java
 │   └── dto
+│       ├── DraftResponse.java
+│       └── DraftSaveRequest.java
 ├── report
 │   ├── Report.java
 │   ├── ReportController.java
 │   ├── ReportRepository.java
 │   ├── ReportService.java
+│   ├── ReportStatus.java
 │   └── dto
+│       ├── ReportRequest.java
+│       └── ReportResponse.java
 └── user
     ├── User.java
     ├── UserController.java
@@ -218,6 +289,63 @@ src/main/java/kr/adapterz/springboot
     ├── UserRepository.java
     ├── UserService.java
     └── dto
+        ├── GetUserResponse.java
+        ├── LoginRequest.java
+        ├── LoginResponse.java
+        ├── RegisterRequest.java
+        ├── RegisterResponse.java
+        ├── UserDeleteRequest.java
+        ├── UserMeResponse.java
+        ├── UserUpdatePassRequest.java
+        ├── UserUpdateRequest.java
+        └── UserUpdateResponse.java
+```
+
+```text
+src/main/resources
+├── application-h2.yaml
+├── application-mysql.yaml
+└── application.yaml
+```
+
+```text
+src/test/java/kr/adapterz/springboot
+├── SpringbootApplicationTests.java
+├── auth
+│   ├── TokenServiceIntegrationTest.java
+│   └── TokenServiceUnitTest.java
+├── comment
+│   ├── CommentServiceIntegrationTest.java
+│   └── CommentServiceUnitTest.java
+├── like
+│   ├── LikeServiceIntegrationTest.java
+│   └── LikeServiceUnitTest.java
+├── post
+│   ├── PostServiceIntegrationTest.java
+│   ├── PostServiceUnitTest.java
+│   └── RankingBatchServiceIntegrationTest.java
+├── postDraft
+│   ├── PostDraftServiceIntegrationTest.java
+│   └── PostDraftServiceUnitTest.java
+├── report
+│   ├── ReportServiceIntegrationTest.java
+│   └── ReportServiceUnitTest.java
+└── user
+    ├── UserServiceIntegrationTest.java
+    └── UserServiceUnitTest.java
+```
+
+```text
+project root
+├── .github/workflows/deploy.yml
+├── Dockerfile
+├── build.gradle
+├── explain-popular-batch.sql
+├── explain-popular-optimized.sql
+├── explain-popular.sql
+├── gradlew
+├── run-local.sh
+└── settings.gradle
 ```
 
   </div>
@@ -387,13 +515,14 @@ src/main/java/kr/adapterz/springboot
 
 ### 6. 인기글 집계 쿼리 성능 문제
 
-인기글을 API 요청 시점마다 계산하면 게시글, 좋아요, 조회수 테이블을 조인하고 그룹화한 뒤 정렬해야 합니다. 게시글 수가 많아질수록 요청 시간이 늘어났고, 주간 인기글은 체감될 정도로 느려졌습니다. 단순히 인덱스를 추가해도 살아 있는 게시글 전체를 대상으로 집계하고 정렬하는 구조적 비용은 남았습니다.
+인기글을 API 요청 시점마다 계산하면 게시글, 좋아요, 조회수 테이블을 조인하고 그룹화한 뒤 정렬해야 합니다. 게시글 수가 많아질수록 요청 시간이 늘어났고, 회고에서 주간 인기글 API가 평균 약 `3.12s`까지 걸리는 것을 확인했습니다. 단순히 인덱스를 추가해도 살아 있는 게시글 전체를 대상으로 집계하고 정렬하는 구조적 비용은 남았습니다.
 
 해결:
 
 - `likes(created_at, post_id)` 계열 인덱스를 검토했습니다.
 - `post_view_events(viewed_at, post_id)` 인덱스를 추가했습니다.
 - MySQL `EXPLAIN ANALYZE`로 실행 계획을 확인했습니다.
+- 인덱스 적용 후 집계 쿼리 실행 시간이 `328ms`에서 `266ms` 수준으로 줄어드는 것을 확인했습니다.
 - 실시간 집계 대신 Spring Batch로 `post_rankings` 테이블을 주기적으로 갱신했습니다.
 - API는 집계 테이블을 조회하고 원본 게시글 상태를 한 번 더 확인합니다.
 
@@ -450,7 +579,7 @@ src/main/java/kr/adapterz/springboot
 
 ### 10. 배치 주기 하드코딩과 실행 시간 확인 문제
 
-`@Scheduled(fixedRateString = "10000")`처럼 주기가 코드에 박혀 있으면 로컬 확인용 10초와 운영용 5분을 나누기 어렵습니다. 또한 배치가 한 번 도는 데 얼마나 걸리는지 로그가 없으면, 실행 시간이 주기를 넘는지 판단할 수 없습니다.
+`@Scheduled(fixedRateString = "10000")`처럼 주기가 코드에 박혀 있으면 로컬 확인용 `10000ms`(10초)와 운영용 `300000ms`(5분)를 나누기 어렵습니다. 또한 배치가 한 번 도는 데 얼마나 걸리는지 로그가 없으면, 실행 시간이 주기를 넘는지 판단할 수 없습니다.
 
 해결:
 
@@ -458,6 +587,7 @@ src/main/java/kr/adapterz/springboot
 - H2/local과 MySQL/운영 설정에서 값을 다르게 둘 수 있게 했습니다.
 - `System.nanoTime()`으로 시작/종료 시간을 계산해 `elapsedMs` 로그를 남겼습니다.
 - ShedLock 시간도 설정값으로 분리했습니다.
+- 배치 1회 실행 시간이 주기보다 길어지는지 로그로 비교할 수 있게 했습니다.
 
 배운 점:
 
@@ -495,6 +625,18 @@ GitHub Actions에서 `./gradlew clean test`를 실행했을 때 Redis 서버가 
 - fetch join, EntityGraph, DTO projection 중 현재 조회 목적에 맞는 방식을 선택해야 합니다.
 
 ## 성능 테스트
+
+### 확인한 수치
+
+| 항목 | 개선 전/문제 상황 | 개선 후/확인 결과 | 확인 방법 |
+| --- | --- | --- | --- |
+| 주간 인기글 API | 평균 약 `3.12s` | 실시간 집계 대신 `post_rankings` 배치 조회 구조로 전환 | `curl -w`, p6spy 로그 |
+| 인기글 집계 쿼리 | `328ms` | 인덱스 적용 후 `266ms` 수준 확인 | MySQL `EXPLAIN ANALYZE` |
+| 배치 실행 주기 | 코드에 `10000ms` 하드코딩 | 설정값으로 분리해 로컬 `10000ms`, 운영 `300000ms` 적용 가능 | `application*.yml` |
+| 배치 1회 소요 시간 | 실행 여부만 확인 가능 | `elapsedMs` 로그로 1회 소요 시간 확인 가능 | 스케줄러 로그 |
+| 테스트 | CI에서 Redis 연결 실패로 `17 failed` | H2 테스트 프로파일 분리 후 `45 tests completed`, `BUILD SUCCESSFUL` | `./gradlew clean test --stacktrace` |
+
+최신 배포 환경 수치는 실행 데이터와 서버 상태에 따라 달라질 수 있어, 제출 전에는 같은 명령으로 한 번 더 재측정하는 것을 기준으로 잡았습니다.
 
 ### 인기글 API 시간 측정
 
