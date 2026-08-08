@@ -8,3 +8,8 @@ spring:
   h2:
     console:
       enabled: false
+
+ranking:
+  batch:
+    fixed-rate-ms: 300000
+    run-slot-minutes: 5

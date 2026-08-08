@@ -7,6 +7,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
@@ -19,17 +20,22 @@ public class PostRankingBatchScheduler {
     private final JobLauncher jobLauncher;
     private final Job postRankingJob;
 
-    @Scheduled(fixedRateString = "300000")
+    @Value("${ranking.batch.run-slot-minutes:5}")
+    private int runSlotMinutes;
+
+    @Scheduled(fixedRateString = "${ranking.batch.fixed-rate-ms}")
     @SchedulerLock(
             name = "postRankingJob",
-            lockAtMostFor = "PT10M",
-            lockAtLeastFor = "PT4M30S"
+            lockAtMostFor = "${ranking.batch.lock-at-most-for}",
+            lockAtLeastFor = "${ranking.batch.lock-at-least-for}"
     )
     public void runPostRankingJob() {
+        long start = System.nanoTime();
         try {
             LocalDateTime now = LocalDateTime.now();
+            int slotMinutes = Math.max(runSlotMinutes, 1);
             LocalDateTime runSlot = now
-                    .withMinute(now.getMinute() / 5 * 5)
+                    .withMinute(now.getMinute() / slotMinutes * slotMinutes)
                     .withSecond(0)
                     .withNano(0);
 
@@ -39,9 +45,11 @@ public class PostRankingBatchScheduler {
 
             log.info("Post ranking batch job started");
             jobLauncher.run(postRankingJob, jobParameters);
-            log.info("Post ranking batch job finished");
+            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+            log.info("Post ranking batch job finished. elapsedMs={}", elapsedMs);
         } catch (Exception e) {
-            log.error("Post ranking batch job failed", e);
+            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+            log.error("Post ranking batch job failed. elapsedMs={}", elapsedMs, e);
         }
     }
 }

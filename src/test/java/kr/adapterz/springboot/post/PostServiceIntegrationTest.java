@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -28,6 +29,7 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@ActiveProfiles("h2")
 @Transactional
 class PostServiceIntegrationTest {
 
@@ -158,6 +160,7 @@ class PostServiceIntegrationTest {
         for (int i = 0; i < count; i++) {
             User likeUser = createUser("like-" + post.getId() + "-" + i);
             likeRepository.save(new Like(post, likeUser, createdAt));
+            postRepository.increaseLikeCount(post.getId());
         }
         flushAndClear();
     }
@@ -166,6 +169,7 @@ class PostServiceIntegrationTest {
         for (int i = 0; i < count; i++) {
             User viewUser = createUser("view-" + post.getId() + "-" + i);
             postViewEventsRepository.save(new PostViewEvents(post, viewUser, viewedAt));
+            postRepository.increaseViewCount(post.getId());
         }
         flushAndClear();
     }

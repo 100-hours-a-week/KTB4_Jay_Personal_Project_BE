@@ -20,3 +20,10 @@ jwt:
   secret: "adapterz-spring-security-jwt-secret-key-for-practice-123456789"
   access-token-expiration-millis: 36000000
   refresh-token-expiration-millis: 604800000
+
+ranking:
+  batch:
+    fixed-rate-ms: 300000
+    run-slot-minutes: 5
+    lock-at-most-for: PT10M
+    lock-at-least-for: PT4M30S

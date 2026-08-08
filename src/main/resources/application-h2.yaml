@@ -10,5 +10,9 @@ spring:
       enabled: true
       path: /h2-console
 
+ranking:
+  batch:
+    fixed-rate-ms: 10000
+    run-slot-minutes: 5
 
 

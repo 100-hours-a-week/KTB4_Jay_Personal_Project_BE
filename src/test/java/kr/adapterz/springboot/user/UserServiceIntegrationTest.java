@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.as;
@@ -18,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 // 실제로 통합테스트를 위해서 springBootTest 어노테이션을 붙여줍니다.
 @SpringBootTest
+@ActiveProfiles("h2")
 // 진짜 commit 해버리면 안되니깐 transactional을 붙여줍니다.
 @Transactional
 public class UserServiceIntegrationTest {
