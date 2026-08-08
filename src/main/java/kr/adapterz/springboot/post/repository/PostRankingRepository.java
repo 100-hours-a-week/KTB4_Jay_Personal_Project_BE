@@ -21,12 +21,17 @@ public interface PostRankingRepository extends JpaRepository<PostRanking, Long> 
                     join fetch r.post p
                     join fetch p.author
                     where r.periodType = :periodType
+                        and p.deletedAt is null
+                        and p.blinded = false
                     order by r.rankPosition asc
                     """,
             countQuery = """
                     select count(r)
                     from PostRanking r
+                    join r.post p
                     where r.periodType = :periodType
+                        and p.deletedAt is null
+                        and p.blinded = false
                     """
     )
     Page<PostRanking> findRankingsWithPostAndAuthor(

@@ -23,7 +23,7 @@ FROM posts p
 ) l ON l.post_id = p.post_id
          LEFT JOIN (
     SELECT post_id, COUNT(*) AS view_count
-    FROM post_views
+    FROM post_view_events
     WHERE viewed_at >= '2026-07-20 00:00:00'
     GROUP BY post_id
 ) v ON v.post_id = p.post_id

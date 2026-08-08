@@ -22,5 +22,7 @@ FROM post_rankings r
          JOIN posts p ON p.post_id = r.post_id
          JOIN users u ON u.user_id = p.author_id
 WHERE r.period_type = 'WEEKLY'
+  AND p.deleted_at IS NULL
+  AND p.blinded = false
 ORDER BY r.rank_position ASC
 LIMIT 5;

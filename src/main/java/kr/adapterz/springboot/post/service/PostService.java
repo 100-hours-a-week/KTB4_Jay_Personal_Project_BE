@@ -91,8 +91,8 @@ public class PostService {
                     .title(post.getTitle())
                     .authorNickname(authorNickname)
                     .likeCount(post.getLikeCount())
-                    .commentCount((long) post.getCommentCount())
-                    .viewCount((long) post.getViewCount())
+                    .commentCount(post.getCommentCount())
+                    .viewCount(post.getViewCount())
                     .createdAt(post.getCreatedAt())
                     .updatedAt(post.getUpdatedAt())
                     .authorDeleted(author.isDeleted())
@@ -115,13 +115,13 @@ public class PostService {
                     .postId(post.getId())
                     .title(post.getTitle())
                     .authorNickname(authorNickname)
-                    .likeCount(ranking.getLikeCount())
+                    .likeCount(post.getLikeCount())
                     .commentCount(post.getCommentCount())
-                    .viewCount(ranking.getViewCount())
+                    .viewCount(post.getViewCount())
                     .createdAt(post.getCreatedAt())
                     .updatedAt(post.getUpdatedAt())
                     .authorDeleted(author.isDeleted())
-                    .blinded(false)
+                    .blinded(post.isBlinded())
                     .build();
         });
     }

@@ -23,15 +23,25 @@ public class PostRankingBatchConfig {
     @Bean
     public Job postRankingJob() {
         return new JobBuilder("postRankingJob", jobRepository)
-                .start(postRankingRefreshStep())
+                .start(dailyRankingRefreshStep())
+                .next(weeklyRankingRefreshStep())
                 .build();
     }
 
     @Bean
-    public Step postRankingRefreshStep() {
-        return new StepBuilder("postRankingRefreshStep", jobRepository)
+    public Step dailyRankingRefreshStep() {
+        return new StepBuilder("dailyRankingRefreshStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     rankingBatchService.refreshRanking(RankingPeriod.DAILY);
+                    return RepeatStatus.FINISHED;
+                }, transactionManager)
+                .build();
+    }
+
+    @Bean
+    public Step weeklyRankingRefreshStep() {
+        return new StepBuilder("weeklyRankingRefreshStep", jobRepository)
+                .tasklet((contribution, chunkContext) -> {
                     rankingBatchService.refreshRanking(RankingPeriod.WEEKLY);
                     return RepeatStatus.FINISHED;
                 }, transactionManager)
