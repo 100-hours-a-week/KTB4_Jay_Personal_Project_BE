@@ -146,6 +146,7 @@
 - DAILY / WEEKLY 인기글 랭킹
 - 기간별 좋아요 수 + 기간별 조회 이벤트 수 기반 점수 계산
 - Spring Batch로 post_rankings 집계 테이블 갱신
+- 해당 기간 랭킹이 비어 있으면 인기글 API 조회 시 즉시 1회 집계
 - DAILY Step / WEEKLY Step 분리
 - ShedLock으로 중복 스케줄 실행 방지
 - 스케줄 주기 설정값 분리
@@ -390,7 +391,7 @@ project root
 |---|---|---|
 | POST | `/posts` | 게시글 작성, `thumbnailUrl` 저장 |
 | GET | `/posts` | 게시글 목록 조회, `thumbnailUrl` 포함 |
-| GET | `/posts/rank` | 인기글 목록 조회 |
+| GET | `/posts/rank` | 인기글 목록 조회, 해당 기간 랭킹이 비어 있으면 즉시 집계 |
 | GET | `/posts/{postId}` | 게시글 상세 조회, `thumbnailUrl` 포함 |
 | PATCH | `/posts/{postId}` | 게시글 수정, `thumbnailUrl` 수정 |
 | DELETE | `/posts/{postId}` | 게시글 삭제 |
@@ -574,12 +575,14 @@ project root
 - MySQL `EXPLAIN ANALYZE`로 실행 계획을 확인했습니다.
 - 인덱스 적용 후 집계 쿼리 실행 시간이 `328ms`에서 `266ms` 수준으로 줄어드는 것을 확인했습니다.
 - 실시간 집계 대신 Spring Batch로 `post_rankings` 테이블을 주기적으로 갱신했습니다.
+- `post_rankings`에 해당 기간 데이터가 없으면 `/posts/rank` 조회 시 `refreshRanking(period)`를 한 번 실행해 빈 인기글 목록을 보완했습니다.
 - API는 집계 테이블을 조회하고 원본 게시글 상태를 한 번 더 확인합니다.
 
 배운 점:
 
 - 인덱스는 필요하지만 모든 성능 문제를 해결하지는 않습니다.
 - 매 요청마다 계산할 필요가 없는 데이터는 배치로 미리 계산하는 구조가 더 적합할 수 있습니다.
+- 조회 API에서 매번 집계하지 않고, 랭킹이 비어 있는 초기 상태에만 fallback 집계를 실행해야 요청 비용을 제한할 수 있습니다.
 
 ### 7. 인기글 조회 시 삭제/블라인드 글이 남는 문제
 
@@ -702,6 +705,7 @@ GitHub Actions에서 `./gradlew clean test`를 실행했을 때 Redis 서버가 
 | --- | --- | --- | --- |
 | 주간 인기글 API | 평균 약 `3.12s` | 실시간 집계 대신 `post_rankings` 배치 조회 구조로 전환 | `curl -w`, p6spy 로그 |
 | 인기글 집계 쿼리 | `328ms` | 인덱스 적용 후 `266ms` 수준 확인 | MySQL `EXPLAIN ANALYZE` |
+| 인기글 초기 조회 | 배치 전 `post_rankings`가 비면 빈 목록 반환 | 해당 period 랭킹이 없을 때 API에서 1회 즉시 집계 | `/posts/rank`, `post_rankings` count |
 | 배치 실행 주기 | 코드에 `10000ms` 하드코딩 | 설정값으로 분리해 로컬 `10000ms`, 운영 `300000ms` 적용 가능 | `application*.yml` |
 | 배치 1회 소요 시간 | 실행 여부만 확인 가능 | `elapsedMs` 로그로 1회 소요 시간 확인 가능 | 스케줄러 로그 |
 | 이미지 업로드 | 이미지 URL 직접 입력 필요 | `POST /images`로 파일 업로드 후 URL/Markdown 반환 | multipart 요청, `/uploads/**` 접근 |

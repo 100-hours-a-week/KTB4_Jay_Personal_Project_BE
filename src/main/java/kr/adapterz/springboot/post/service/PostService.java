@@ -39,6 +39,7 @@ public class PostService {
     private final PostViewRepository postViewRepository;
     private final PostReader postReader;
     private final PostRankingRepository postRankingRepository;
+    private final RankingBatchService rankingBatchService;
 
     @Transactional
     public PostResponse createPost(
@@ -105,7 +106,12 @@ public class PostService {
         });
     }
 
+    @Transactional
     public Page<PostListResponse> getRankPost(Pageable pageable, RankingPeriod period) {
+        if (!postRankingRepository.existsByPeriodType(period)) {
+            rankingBatchService.refreshRanking(period);
+        }
+
         Page<PostRanking> rankings =
                 postRankingRepository.findRankingsWithPostAndAuthor(period, pageable);
         return rankings.map(ranking -> {

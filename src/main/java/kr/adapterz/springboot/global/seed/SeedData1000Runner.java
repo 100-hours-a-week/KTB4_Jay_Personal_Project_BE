@@ -5,6 +5,8 @@ import kr.adapterz.springboot.like.LikeRepository;
 import kr.adapterz.springboot.post.entity.Post;
 import kr.adapterz.springboot.post.repository.PostRepository;
 import kr.adapterz.springboot.post.entity.PostView;
+import kr.adapterz.springboot.post.entity.PostViewEvents;
+import kr.adapterz.springboot.post.repository.PostViewEventsRepository;
 import kr.adapterz.springboot.post.repository.PostViewRepository;
 import kr.adapterz.springboot.user.User;
 import kr.adapterz.springboot.user.UserRepository;
@@ -32,6 +34,7 @@ public class SeedData1000Runner implements CommandLineRunner {
     private final PostRepository postRepository;
     private final LikeRepository likeRepository;
     private final PostViewRepository postViewRepository;
+    private final PostViewEventsRepository postViewEventsRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -173,6 +176,7 @@ public class SeedData1000Runner implements CommandLineRunner {
         for (int i = 0; i < count; i++) {
             User user = users.get((startIndex + i) % users.size());
             postViewRepository.save(new PostView(post, user, viewedAt));
+            postViewEventsRepository.save(new PostViewEvents(post, user, viewedAt));
             post.increaseViewCount();
         }
     }

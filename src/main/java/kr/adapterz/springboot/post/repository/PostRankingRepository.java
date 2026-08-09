@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 public interface PostRankingRepository extends JpaRepository<PostRanking, Long> {
     void deleteByPeriodType(RankingPeriod periodType);
 
+    boolean existsByPeriodType(RankingPeriod periodType);
+
     @Query(
             value = """
                     select r
