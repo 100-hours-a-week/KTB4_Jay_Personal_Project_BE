@@ -33,6 +33,9 @@ public class Post {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "thumbnail_url")
+    private String thumbnailUrl;
+
     @Column(name = "view_count", nullable = false)
     private Long viewCount;
 
@@ -58,6 +61,21 @@ public class Post {
         this.author = author;
         this.title = title;
         this.content = content;
+        this.thumbnailUrl = null;
+        this.viewCount = 0L;
+        this.commentCount = 0L;
+        this.likeCount = 0L;
+        this.blinded = false;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = null;
+        this.deletedAt = null;
+    }
+
+    public Post(User author, String title, String content, String thumbnailUrl){
+        this.author = author;
+        this.title = title;
+        this.content = content;
+        this.thumbnailUrl = thumbnailUrl;
         this.viewCount = 0L;
         this.commentCount = 0L;
         this.likeCount = 0L;
@@ -71,6 +89,7 @@ public class Post {
         this.author = author;
         this.title = title;
         this.content = content;
+        this.thumbnailUrl = null;
         this.viewCount = 0L;
         this.commentCount = 0L;
         this.likeCount = 0L;
@@ -92,6 +111,13 @@ public class Post {
     public void update(String title, String content){
         this.title = title;
         this.content = content;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void update(String title, String content, String thumbnailUrl){
+        this.title = title;
+        this.content = content;
+        this.thumbnailUrl = thumbnailUrl;
         this.updatedAt = LocalDateTime.now();
     }
 

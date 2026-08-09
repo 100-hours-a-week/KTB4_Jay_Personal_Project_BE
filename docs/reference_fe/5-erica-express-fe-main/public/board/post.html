@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="kr">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+		/>
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<link rel="stylesheet" type="text/css" href="/src/styles/navbar.css" />
+		<link rel="stylesheet" type="text/css" href="/src/styles/post.css" />
+		<link rel="stylesheet" type="text/css" href="/src/styles/modal.css" />
+		<link rel="stylesheet" type="text/css" href="/styles.css" />
+		<script type="text/javascript" src="/src/js/static.js"></script>
+		<link
+			rel="preload"
+			href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Noto+Sans+KR:wght@100;300;400;500;700;900&display=swap"
+			as="style"
+		/>
+		<title>아무 말 대잔치</title>
+	</head>
+	<body>
+		<!--중복되는 navbar은 나중에 하나의 컴포넌트로 빼서 각각 import 할 예정-->
+		<section class="navbar"></section>
+		<section class="main">
+			<!--게시물 목록 표시-->
+			<div class="board"></div>
+			<hr />
+			<div class="commentContainer">
+				<form class="writeComment">
+					<label for="commentInput"></label>
+					<textarea id="commentInput" rows="4" placeholder="댓글을 남겨주세요!" maxlength="200"></textarea>
+					<div class="commentPostButton">
+						<button type="button" class="writeButton">완료</button>
+						<button type="button" class="updateButton">완료</button>
+					</div>
+				</form>
+				<!--댓글 목록 표시-->
+				<div class="commentList"></div>
+			</div>
+		</section>
+		<div class="boardModalContainer modalContainer">
+			<div class="deem"></div>
+			<div class="boardDeleteModal modal">
+				<p class="title">게시글을 삭제하시겠습니까?</p>
+				<div class="description">삭제한 내용은 복구 할 수 없습니다.</div>
+				<div class="buttonContainer">
+					<button class="cancelButton button">취소</button>
+					<button class="submitButton button">확인</button>
+				</div>
+			</div>
+		</div>
+		<div class="commentModalContainer modalContainer">
+			<div class="deem"></div>
+			<div class="commentDeleteModal modal">
+				<p class="title">댓글을 삭제하시겠습니까?</p>
+				<div class="description">삭제한 내용은 복구 할 수 없습니다.</div>
+				<div class="buttonContainer">
+					<button class="cancelButton button">취소</button>
+					<button class="submitButton button">확인</button>
+				</div>
+			</div>
+		</div>
+	</body>
+
+	<!--post, comments fetch script-->
+	<!--게시물 script-->
+	<script type="module" src="/src/js/getPost.js"></script>
+	<!--댓글 script-->
+	<script type="module" src="/src/js/getComments.js"></script>
+	<!--모달script-->
+	<!--comment register script-->
+	<script type="module" src="/src/js/addComments.js"></script>
+	<script type="module" src="/src/js/navbar.js"></script>
+</html>

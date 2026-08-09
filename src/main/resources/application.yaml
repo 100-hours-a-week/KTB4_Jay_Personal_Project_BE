@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
   jpa:
     hibernate:
       ddl-auto: update
@@ -27,3 +31,6 @@ ranking:
     run-slot-minutes: 5
     lock-at-most-for: PT10M
     lock-at-least-for: PT4M30S
+
+file:
+  upload-dir: uploads

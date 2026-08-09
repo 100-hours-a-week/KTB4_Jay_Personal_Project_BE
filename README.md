@@ -9,17 +9,15 @@
 
 ## 개발 인원 및 기간
 
-- 개발 기간: 2026년 3주차 ~ 12주차
-- 개발 인원: 1명
+- 개발 기간: 2026-05-12 ~ 2026-08-09
+- 개발 인원: 프론트엔드/백엔드 1명 (본인)
 - 담당 범위: API 설계, ERD 설계, 백엔드 구현, 테스트, 성능 개선, 배포 자동화, 피드백 반영
 
 ## Repository
 
-- Back-end Github: `제출용 BE GitHub 링크 입력`
-- Front-end Github: `제출용 FE GitHub 링크 입력`
-- 배포 주소: `배포 URL 입력`
+- Back-end Github: `https://github.com/100-hours-a-week/KTB4_Jay_Personal_Project_BE`
+- Front-end Github: `https://github.com/100-hours-a-week/KTB4_Jay_Personal_Project_FE`
 - 시연 영상: `시연 영상 링크 입력`
-- 회고/문서: `Notion 또는 문서 링크 입력`
 
 ## 사용 기술 및 Tools
 
@@ -68,11 +66,26 @@
 - 게시글 상세 조회
 - 게시글 수정
 - 게시글 삭제
+- Markdown 본문 저장
+- 대표 이미지 URL 저장
+- 목록/상세 응답에 thumbnailUrl 제공
 - Soft Delete 적용
 - 블라인드 게시글 응답 분기
 - 작성자 권한 검증
 - 페이지네이션 적용
 - 게시글 본문 TEXT 매핑
+```
+
+### Images
+
+```text
+- multipart/form-data 이미지 업로드
+- 로컬 디스크 uploads/ 폴더 저장
+- UUID 기반 파일명 생성
+- jpg, jpeg, png, gif, webp 확장자 허용
+- 최대 5MB 업로드 제한
+- /uploads/** 정적 리소스 서빙
+- Markdown 이미지 문법 반환
 ```
 
 ### Comments
@@ -229,6 +242,11 @@ src/main/java/kr/adapterz/springboot
 │   └── websocket
 │       ├── StompJwtChannelInterceptor.java
 │       └── WebSocketConfig.java
+├── image
+│   ├── ImageController.java
+│   ├── ImageService.java
+│   └── dto
+│       └── ImageUploadResponse.java
 ├── like
 │   ├── Like.java
 │   ├── LikeController.java
@@ -370,12 +388,42 @@ project root
 
 | Method | URI | 설명 |
 |---|---|---|
-| POST | `/posts` | 게시글 작성 |
-| GET | `/posts` | 게시글 목록 조회 |
+| POST | `/posts` | 게시글 작성, `thumbnailUrl` 저장 |
+| GET | `/posts` | 게시글 목록 조회, `thumbnailUrl` 포함 |
 | GET | `/posts/rank` | 인기글 목록 조회 |
-| GET | `/posts/{postId}` | 게시글 상세 조회 |
-| PATCH | `/posts/{postId}` | 게시글 수정 |
+| GET | `/posts/{postId}` | 게시글 상세 조회, `thumbnailUrl` 포함 |
+| PATCH | `/posts/{postId}` | 게시글 수정, `thumbnailUrl` 수정 |
 | DELETE | `/posts/{postId}` | 게시글 삭제 |
+
+게시글 작성/수정 요청은 대표 이미지 필드로 `thumbnailUrl`을 사용합니다. 프론트 하위 호환을 위해 `imageUrl`로 들어온 값도 `thumbnailUrl`에 매핑합니다.
+
+```json
+{
+  "title": "제목",
+  "content": "본문 Markdown 문자열",
+  "thumbnailUrl": "http://localhost:8080/uploads/example.png",
+  "imageUrl": "http://localhost:8080/uploads/example.png"
+}
+```
+
+목록/상세 응답에는 대표 이미지가 없으면 `thumbnailUrl`이 `null`로 내려갑니다.
+
+### Images
+
+| Method | URI | 설명 |
+|---|---|---|
+| POST | `/images` | 이미지 업로드 |
+| GET | `/uploads/{fileName}` | 업로드 이미지 조회 |
+
+```json
+{
+  "message": "image_uploaded",
+  "data": {
+    "imageUrl": "http://localhost:8080/uploads/example.png",
+    "markdown": "![이미지](http://localhost:8080/uploads/example.png)"
+  }
+}
+```
 
 ### Drafts
 
@@ -413,7 +461,7 @@ project root
 | 테이블 | 역할 |
 |---|---|
 | `users` | 사용자 정보, 탈퇴 상태, 프로필 이미지 |
-| `posts` | 게시글 본문, 누적 좋아요/댓글/조회 수, 삭제/블라인드 상태 |
+| `posts` | 게시글 본문, 대표 이미지 URL, 누적 좋아요/댓글/조회 수, 삭제/블라인드 상태 |
 | `comments` | 댓글과 대댓글, 부모 댓글 참조, 삭제 상태 |
 | `likes` | 사용자별 게시글 좋아요 |
 | `reports` | 사용자별 게시글 신고 |
@@ -432,6 +480,8 @@ project root
 - 탈퇴 사용자의 컨텐츠는 삭제하지 않고 작성자 표시 정책으로 처리했습니다.
 - 조회수 중복 방지와 기간별 조회 이벤트 집계를 분리하기 위해 `post_views`, `post_view_events`를 나누었습니다.
 - 인기글 조회 성능을 위해 실시간 집계 대신 `post_rankings` 집계 테이블을 사용했습니다.
+- 대표 이미지는 Markdown 본문 안의 이미지와 분리해 `posts.thumbnail_url`에 저장했습니다.
+- 현재 이미지 파일은 로컬 디스크 `uploads/`에 저장하고, 운영 확장 시 S3 같은 외부 스토리지로 옮길 수 있게 URL만 게시글에 저장했습니다.
 
 ## 트러블 슈팅
 
@@ -624,6 +674,26 @@ GitHub Actions에서 `./gradlew clean test`를 실행했을 때 Redis 서버가 
 - 응답이 정상이라는 것과 쿼리가 효율적이라는 것은 다릅니다.
 - fetch join, EntityGraph, DTO projection 중 현재 조회 목적에 맞는 방식을 선택해야 합니다.
 
+### 13. 코드리뷰 게시글에서 본문 이미지와 대표 이미지를 분리해야 하는 문제
+
+서비스 컨셉상 사용자는 코드와 스크린샷을 함께 올릴 수 있어야 합니다. 본문 이미지는 Markdown content 안에 들어가도 되지만, 게시글 목록 카드에서 보여줄 대표 이미지는 목록 조회마다 본문 문자열을 파싱해서 찾기보다 별도 필드로 내려주는 편이 명확합니다.
+
+해결:
+
+- `POST /images` API를 추가해 이미지를 `multipart/form-data`로 업로드할 수 있게 했습니다.
+- 업로드 파일은 로컬 디스크 `uploads/` 폴더에 UUID 파일명으로 저장했습니다.
+- `/uploads/**` 정적 리소스 매핑을 추가해 업로드 이미지를 URL로 접근할 수 있게 했습니다.
+- `jpg`, `jpeg`, `png`, `gif`, `webp`만 허용하고 최대 크기를 `5MB`로 제한했습니다.
+- 게시글 생성/수정 DTO에 `thumbnailUrl`을 추가했습니다.
+- 프론트 하위 호환을 위해 `imageUrl` 요청 필드도 `thumbnailUrl`로 받을 수 있게 했습니다.
+- 게시글 목록/상세 응답에 `thumbnailUrl`을 포함했습니다.
+
+배운 점:
+
+- 본문 content와 목록 대표 이미지는 화면에서 쓰임이 다르므로 별도 필드로 관리하는 편이 안전합니다.
+- 로컬 디스크 업로드는 구현과 시연이 빠르지만, 운영 환경에서는 컨테이너 재생성이나 서버 교체 시 파일이 사라질 수 있습니다.
+- 운영에서는 S3 같은 외부 스토리지로 전환하고 DB에는 이미지 URL만 저장하는 구조가 더 적합합니다.
+
 ## 성능 테스트
 
 ### 확인한 수치
@@ -634,6 +704,7 @@ GitHub Actions에서 `./gradlew clean test`를 실행했을 때 Redis 서버가 
 | 인기글 집계 쿼리 | `328ms` | 인덱스 적용 후 `266ms` 수준 확인 | MySQL `EXPLAIN ANALYZE` |
 | 배치 실행 주기 | 코드에 `10000ms` 하드코딩 | 설정값으로 분리해 로컬 `10000ms`, 운영 `300000ms` 적용 가능 | `application*.yml` |
 | 배치 1회 소요 시간 | 실행 여부만 확인 가능 | `elapsedMs` 로그로 1회 소요 시간 확인 가능 | 스케줄러 로그 |
+| 이미지 업로드 | 이미지 URL 직접 입력 필요 | `POST /images`로 파일 업로드 후 URL/Markdown 반환 | multipart 요청, `/uploads/**` 접근 |
 | 테스트 | CI에서 Redis 연결 실패로 `17 failed` | H2 테스트 프로파일 분리 후 `45 tests completed`, `BUILD SUCCESSFUL` | `./gradlew clean test --stacktrace` |
 
 최신 배포 환경 수치는 실행 데이터와 서버 상태에 따라 달라질 수 있어, 제출 전에는 같은 명령으로 한 번 더 재측정하는 것을 기준으로 잡았습니다.
@@ -721,7 +792,7 @@ JPA를 사용하면서 트랜잭션, 더티 체킹, 1차 캐시, flush/clear가 
 
 - 인기글을 상위 몇 위까지 저장/제공할지 정책값으로 명확히 분리
 - Swagger 또는 REST Docs 기반 API 문서 자동화
-- S3 기반 이미지 업로드 도입
+- 로컬 디스크 이미지 업로드를 S3 기반 업로드로 전환
 - 배치 실패 알림과 실행 시간 모니터링 추가
 - Redis/MySQL 장애 상황에 대한 운영 대응 전략 보강
 - 랭킹 점수 공식에 댓글 수, 시간 감쇠 등 추가 기준 검토

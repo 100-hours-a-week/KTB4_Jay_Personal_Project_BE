@@ -16,6 +16,7 @@ public class PostDetailResponse {
     private Long userId;
     private String title;
     private String content;
+    private String thumbnailUrl;
     private String authorNickname;
     private String authorProfileImage;
     private Boolean authorDeleted;

@@ -49,7 +49,8 @@ public class PostService {
         Post post = new Post(
                 user,
                 request.getTitle(),
-                request.getContent()
+                request.getContent(),
+                request.getThumbnailUrl()
         );
 
         Post savedPost = postRepository.save(post);
@@ -57,6 +58,7 @@ public class PostService {
                 savedPost.getId(),
                 savedPost.getTitle(),
                 savedPost.getContent(),
+                savedPost.getThumbnailUrl(),
                 user.getNickname(),
                 savedPost.getCreatedAt()
         );
@@ -72,6 +74,7 @@ public class PostService {
                 return PostListResponse.builder()
                         .postId(post.getId())
                         .title("블라인드 처리된 게시글입니다.")
+                        .thumbnailUrl(null)
                         .authorNickname("블라인드 처리된 사용자입니다.")
                         .commentCount(null)
                         .viewCount(null)
@@ -89,6 +92,7 @@ public class PostService {
             return PostListResponse.builder()
                     .postId(post.getId())
                     .title(post.getTitle())
+                    .thumbnailUrl(post.getThumbnailUrl())
                     .authorNickname(authorNickname)
                     .likeCount(post.getLikeCount())
                     .commentCount(post.getCommentCount())
@@ -114,6 +118,7 @@ public class PostService {
             return PostListResponse.builder()
                     .postId(post.getId())
                     .title(post.getTitle())
+                    .thumbnailUrl(post.getThumbnailUrl())
                     .authorNickname(authorNickname)
                     .likeCount(post.getLikeCount())
                     .commentCount(post.getCommentCount())
@@ -145,6 +150,7 @@ public class PostService {
                     .userId(null)
                     .title("블라인드 처리된 게시글입니다.")
                     .content(null)
+                    .thumbnailUrl(null)
                     .authorNickname("블라인드 처리된 사용자입니다.")
                     .authorProfileImage(null)
                     .authorDeleted(author.isDeleted())
@@ -169,6 +175,7 @@ public class PostService {
                 .userId(author.getId())
                 .title(post.getTitle())
                 .content(post.getContent())
+                .thumbnailUrl(post.getThumbnailUrl())
                 .authorNickname(authorNickname)
                 .authorProfileImage(author.getProfileImage())
                 .authorDeleted(author.isDeleted())
@@ -200,12 +207,13 @@ public class PostService {
         Post post = postReader.getActivePost(postId);
         User user = post.getAuthor();
         validateAuthor(post, currentUserId);
-        post.update(request.getTitle(), request.getContent());
+        post.update(request.getTitle(), request.getContent(), request.getThumbnailUrl());
 
         return new UpdatePostResponse(
                 postId,
                 request.getTitle(),
                 request.getContent(),
+                post.getThumbnailUrl(),
                 user.getNickname(),
                 post.getCreatedAt(),
                 post.getUpdatedAt()

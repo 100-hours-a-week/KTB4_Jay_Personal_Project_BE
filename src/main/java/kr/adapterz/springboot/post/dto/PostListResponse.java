@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class PostListResponse {
     private Long postId;
     private String title;
+    private String thumbnailUrl;
     private String authorNickname;
     private Long commentCount;
     private Long viewCount;
