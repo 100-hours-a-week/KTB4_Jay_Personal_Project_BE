@@ -17,7 +17,7 @@
 
 - Back-end Github: `https://github.com/100-hours-a-week/KTB4_Jay_Personal_Project_BE`
 - Front-end Github: `https://github.com/100-hours-a-week/KTB4_Jay_Personal_Project_FE`
-- 시연 영상: `시연 영상 링크 입력`
+- 시연 영상: https://drive.google.com/file/d/1CjIGSUEz2xKyWmeRw4WlikOgNkLoRqIr/view?usp=sharing
 
 ## 사용 기술 및 Tools
 
