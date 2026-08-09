@@ -14,10 +14,11 @@
 - 담당 범위: API 설계, ERD 설계, 백엔드 구현, 테스트, 성능 개선, 배포 자동화, 피드백 반영
 
 ## Repository
-
-- Back-end Github: https://github.com/100-hours-a-week/KTB4_Jay_Personal_Project_BE
-- Front-end Github: https://github.com/100-hours-a-week/KTB4_Jay_Personal_Project_FE
-- 시연 영상: https://drive.google.com/file/d/1CjIGSUEz2xKyWmeRw4WlikOgNkLoRqIr/view?usp=sharing
+| 구분 | 링크                                                                                 |
+|---|------------------------------------------------------------------------------------|
+| Backend | [github_be_link](https://github.com/100-hours-a-week/KTB4_Jay_Personal_Project_BE) |
+| Frontend | [github_fe_link](https://github.com/100-hours-a-week/KTB4_Jay_Personal_Project_FE) |
+| 시연 영상 | [google_drive_link](https://drive.google.com/file/d/1CjIGSUEz2xKyWmeRw4WlikOgNkLoRqIr/view?usp=sharing)|
 
 ## 사용 기술 및 Tools
 
