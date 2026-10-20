@@ -571,17 +571,18 @@ project root
 
 ### 5. 인기글 집계 쿼리 성능 문제
 
-인기글을 API 요청 시점마다 계산하면 게시글, 좋아요, 조회수 테이블을 조인하고 그룹화한 뒤 정렬해야 합니다. 게시글 수가 많아질수록 요청 시간이 늘어났고, 회고에서 주간 인기글 API가 평균 약 `3.12s`까지 걸리는 것을 확인했습니다. 단순히 인덱스를 추가해도 살아 있는 게시글 전체를 대상으로 집계하고 정렬하는 구조적 비용은 남았습니다.
+인기글을 API 요청 시점마다 계산하면 게시글, 좋아요, 조회수 테이블을 조인하고 그룹화한 뒤 정렬해야 합니다. 기존 회고의 주간 인기글 API 평균 약 `3.12s`는 **H2·사용자 1,000명·게시글 10,000개**에서 나온 기록입니다. [회고 원본 아카이브](docs/ktb_project_jay)의 5개 주간 표본은 `3.12s / 3.09s / 3.11s / 3.15s / 14ms`이며, 기록된 평균에서 빠른 표본을 어떻게 처리했는지는 명시되지 않았습니다. 따라서 아래 MySQL 재측정과 동일 조건의 개선 전후 수치로 사용하지 않습니다. 실시간 집계의 JOIN 행 증가와 전체 게시글 정렬 비용을 줄이는 것이 구조 개선의 목적입니다.
 
 해결:
 
 - `likes(created_at, post_id)` 계열 인덱스를 검토했습니다.
 - `post_view_events(viewed_at, post_id)` 인덱스를 추가했습니다.
 - MySQL `EXPLAIN ANALYZE`로 실행 계획을 확인했습니다.
-- 인덱스 적용 후 집계 쿼리 실행 시간이 `328ms`에서 `266ms` 수준으로 줄어드는 것을 확인했습니다.
+- `328ms → 266ms`는 기존 문서의 집계 쿼리·인덱스 튜닝 기록으로 분리해 보존합니다. 원본은 EXPLAIN 진단과 함께 API 응답 표본을 제시하며, 적용 후 주간 표본 `301 / 281 / 280 / 285 / 285ms`의 평균은 `286.4ms`로 원본의 `266.4ms`와 일치하지 않습니다. 이번에 재검증한 SQL 실행시간이나 확정된 이력서 수치로 사용하지 않습니다.
 - 실시간 집계 대신 Spring Batch로 `post_rankings` 테이블을 주기적으로 갱신했습니다.
 - `post_rankings`에 해당 기간 데이터가 없으면 `/posts/rank` 조회 시 `refreshRanking(period)`를 한 번 실행해 빈 인기글 목록을 보완했습니다.
 - API는 집계 테이블을 조회하고 원본 게시글 상태를 한 번 더 확인합니다.
+- 2026-10-20 로컬 MySQL 재측정에서 정상 조회는 평균 `36.70ms`·p95 `38.73ms`(워밍업 10회, 측정 50회), 랭킹을 비운 fallback은 평균 `202.31ms`(별도 워밍업 10회, 측정 30회)였습니다. 조건과 원시 표본은 아래 성능 테스트에 기록했습니다.
 
 배운 점:
 
@@ -708,23 +709,101 @@ GitHub Actions에서 `./gradlew clean test`를 실행했을 때 Redis 서버가 
 
 | 항목 | 개선 전/문제 상황 | 개선 후/확인 결과 | 확인 방법 |
 | --- | --- | --- | --- |
-| 주간 인기글 API | 평균 약 `3.12s` | 실시간 집계 대신 `post_rankings` 배치 조회 구조로 전환 | `curl -w`, p6spy 로그 |
-| 인기글 집계 쿼리 | `328ms` | 인덱스 적용 후 `266ms` 수준 확인 | MySQL `EXPLAIN ANALYZE` |
-| 인기글 초기 조회 | 배치 전 `post_rankings`가 비면 빈 목록 반환 | 해당 period 랭킹이 없을 때 API에서 1회 즉시 집계 | `/posts/rank`, `post_rankings` count |
+| 주간 인기글 API 기존 기록 | H2·게시글 10,000개, 평균 약 `3.12s`로 기록 | 빠른 표본의 평균 포함 여부 불명확; 새 MySQL 측정과 직접 비교 제외 | 회고 원본 아카이브 |
+| 주간 인기글 API 정상 조회 | 해당 period 랭킹 사전 생성 | 로컬 MySQL 평균 `36.70ms`, median `36.64ms`, p95 `38.73ms` | 워밍업 10회 + HTTP 50회, curl·p6spy |
+| 주간 인기글 API fallback | 매 요청 전 `post_rankings` 전체 비움 | 평균 `202.31ms`, median `189.20ms`, p95 `302.38ms` | 별도 워밍업 10회 + HTTP 30회, 집계 INSERT 확인 |
+| 기존 집계 쿼리·인덱스 튜닝 기록 | `328ms` | 기존 문서 `266ms`; 원본 표본 평균 불일치로 재검증 전 성능 주장 제외 | 과거 기록 보존, 현재 API 측정과 분리 |
+| 실시간 집계 SQL 재측정 | raw JOIN + DISTINCT 집계 | 평균 `398.91ms`; 파생 테이블 집계 SQL 평균 `46.62ms` | MySQL 세션별 프로파일, 각 워밍업 10회 + 30회 |
 | 배치 실행 주기 | 코드에 `10000ms` 하드코딩 | 설정값으로 분리해 로컬 `10000ms`, 운영 `300000ms` 적용 가능 | `application*.yml` |
 | 배치 1회 소요 시간 | 실행 여부만 확인 가능 | `elapsedMs` 로그로 1회 소요 시간 확인 가능 | 스케줄러 로그 |
 | 이미지 업로드 | 이미지 URL 직접 입력 필요 | `POST /images`로 파일 업로드 후 URL/Markdown 반환 | multipart 요청, `/uploads/**` 접근 |
 | 테스트 | CI에서 Redis 연결 실패로 `17 failed` | H2 테스트 프로파일 분리 후 `45 tests completed`, `BUILD SUCCESSFUL` | `./gradlew clean test --stacktrace` |
 
-최신 배포 환경 수치는 실행 데이터와 서버 상태에 따라 달라질 수 있어, 제출 전에는 같은 명령으로 한 번 더 재측정하는 것을 기준으로 잡았습니다.
+아래 실측은 로컬 단일 클라이언트의 순차 요청 결과입니다. 운영 응답시간이나 동시 부하 성능을 보장하는 값으로 사용하지 않습니다.
 
 ### 인기글 API 시간 측정
 
+2026-10-20, 애플리케이션 소스 `3026268`(측정 시작 시 최신 `origin/main`) 기준으로 실행했습니다. 제품 코드·의존성 변경 없이 기존 `SeedData10000Runner`(`seed-10000`, `Random(42)`)를 그대로 사용했습니다.
+
+| 조건 | 실제 설정 / 건수 |
+| --- | --- |
+| Java / Spring Boot | Microsoft OpenJDK `21.0.9` / `3.5.4` |
+| MySQL | 로컬 Homebrew `9.5.0`, InnoDB buffer pool `128MiB`, `REPEATABLE-READ` |
+| 실행 환경 | macOS Darwin `25.6.0`, Apple M4 Pro, 메모리 `24GiB`; JVM `-Xms512m -Xmx2g` |
+| HTTP / DB | 내장 Tomcat `127.0.0.1:18080`, 같은 호스트 MySQL `3306`; 동시성 1, curl 요청마다 새 연결 |
+| 사용자 / 게시글 | users `1,000` / posts `10,000` |
+| 좋아요 / 조회 이벤트 | likes `149,995` / post_view_events `402,402` (post_views도 `402,402`) |
+| 정상 요청 직전 랭킹 | post_rankings `20,000` (DAILY `10,000` + WEEKLY `10,000`) |
+| fallback 요청 직전 / 이후 | post_rankings `0` → WEEKLY `10,000`; 매 요청 전 비우기와 건수 확인은 측정 시간에서 제외 |
+| 요청 | `GET /posts/rank?period=WEEKLY&size=5`, page `0` |
+| 기간 | JVM KST 기준 WEEKLY 시작 `2026-10-19 00:00:00`; 해당 기간 likes `54,822`, view events `148,722` |
+| 캐시 / 로그 | JVM·DB가 실행된 상태에서 워밍업, OS·DB 캐시 초기화 없음; 측정 중 p6spy 로깅 활성화 |
+| 배치 간섭 | 측정 전 실제 배치 완료 확인; fixed rate를 `86400000ms`로 설정해 측정 중 재실행 방지 |
+
+데이터 생성은 측정에서 제외했습니다. 기존 seed가 한 JPA 트랜잭션에 연관 데이터를 보관해 2GiB 힙에서 실패했으므로 생성만 6GiB로 재실행했습니다. 커밋 완료 후 seed 프로파일 없이 **새 2GiB JVM**으로 재시작했습니다. 기존 `bamboo` DB 대신 별도 `bamboo_rank_bench_20261020` DB와 별도 Redis 컨테이너를 사용했습니다.
+
+정상 경로는 `refreshRanking()` 완료 후 WEEKLY 행 존재를 확인한 뒤 측정했습니다. fallback은 매번 랭킹 전체를 비우고 요청해, 실제 `refreshRanking(WEEKLY)`의 집계 INSERT와 조회가 응답시간에 포함되도록 했습니다. 두 그룹 각각 워밍업 10회 후 측정했으며, 모든 표본에서 HTTP 200·응답 5건·totalElements 10,000을 확인했습니다.
+
+| HTTP 경로 (단위 ms) | 측정 횟수 | 평균 | median | p95 | min | max |
+| --- | --- | --- | --- | --- | --- | --- |
+| 정상 사전 집계 조회 | 50 | 36.70 | 36.64 | 38.73 | 34.81 | 39.37 |
+| 랭킹이 없는 fallback | 30 | 202.31 | 189.20 | 302.38 | 162.50 | 397.44 |
+
+p95는 정렬한 표본의 `ceil(0.95 × n)`번째 값이고, 평균은 산술평균입니다. 별도의 사전 준비용 첫 WEEKLY fallback은 `312.51ms`(1회)로, 위 두 분포에서 제외했습니다. fallback 반복값은 JVM/DB가 워밍업된 상태에서 랭킹만 없는 요청이며, 서버 콜드 스타트 시간이 아닙니다.
+
+#### SQL 로그와 실행 계획
+
+- 정상 50회 모두 **SQL 3개**: period 존재 확인 1개 + `post_rankings JOIN posts JOIN users` fetch join 1개 + `post_rankings JOIN posts` count 1개. commit 로그 1개는 SQL 개수에서 별도로 셌습니다.
+- 정상 요청에서 `likes`·`post_view_events` 집계와 작성자 추가 SELECT는 없었습니다. 이 조건에서 N+1은 관찰되지 않았고, Page 응답의 count query는 매번 실행됐습니다.
+- fallback 30회 모두 **SQL 5개**: 존재 확인 + 삭제 대상 조회(빈 결과) + `INSERT ... SELECT` 집계 + fetch join + count. 빈 테이블이므로 실제 DELETE 문은 없었으며, 집계 INSERT에서 `likes`·`post_view_events` 조회를 확인했습니다. commit 로그는 별도 1개입니다.
+- p6spy에서 추출한 **실제 전체 컬럼 조회 SQL**의 `EXPLAIN ANALYZE`: 목록 조회 `28.5ms`, count `7.97ms`(각 1회 진단값). 옵티마이저는 posts 10,000행 스캔 → users PK / 랭킹의 `(period_type, post_id)` 유니크 인덱스 조인 → rank_position 정렬을 선택했습니다. 존재 확인은 `(period_type, rank_position)` 인덱스를 사용했습니다. **사전 집계 조회도 현재 실행 계획에서는 전체 게시글 스캔·정렬 및 count 비용이 남습니다.**
+
+기존 실시간 SQL도 같은 DB·기간·LIMIT 5로 각각 워밍업 10회 + 30회 실행했습니다. MySQL 세션 내 `SHOW PROFILES` 시간을 사용했으며, HTTP·JPA·별도 count query 시간은 포함하지 않았습니다. `EXPLAIN ANALYZE`는 별도 1회 실행해 진단 오버헤드가 반복 측정에 섞이지 않도록 했습니다.
+
+| SQL만 측정 (단위 ms) | 측정 횟수 | 평균 | median | p95 | min | max |
+| --- | --- | --- | --- | --- | --- | --- |
+| explain-popular.sql의 raw JOIN + DISTINCT 집계 | 30 | 398.91 | 398.50 | 406.68 | 389.63 | 409.39 |
+| explain-popular-optimized.sql의 파생 테이블 집계 | 30 | 46.62 | 46.33 | 48.26 | 45.12 | 48.78 |
+| PostRepository.findRankPosts의 실시간 가중 점수 집계 | 30 | 46.99 | 46.90 | 48.25 | 45.57 | 48.46 |
+
+raw JOIN의 EXPLAIN에서는 중간 결과가 `970,900`행으로 늘고 루트 실행시간은 `489ms`였습니다. 파생 테이블 방식은 날짜 복합 인덱스 range scan으로 likes `54,822`건·view events `148,722`건을 각각 집계해 조인했고, 루트 `56.6ms`(repository 가중 점수 쿼리 `57.5ms`)였습니다. 기존 SQL 파일 사본에서는 DB명과 고정 시작일만 이번 측정 조건으로 바꿨습니다. 샘플 SQL은 좋아요/조회수 순차 정렬, repository는 `좋아요 × 10 + 조회수` 정렬이므로 동일 결과를 내는 예전/현재 API 비교로 해석하지 않습니다. 인덱스를 제거한 대조군은 실행하지 않았으므로 이번 SQL 수치도 인덱스 단독 개선 효과가 아닙니다.
+
+#### 해석과 원본 보존
+
+- 이력서에 사용할 수 있는 표현: **로컬 MySQL·게시글 1만 건에서 사전 집계 정상 조회 평균 36.70ms·p95 38.73ms 확인(워밍업 10회, 50회 측정)**.
+- `3.12s → 36.70ms`나 개선 배수·퍼센트는 사용하지 않습니다. 기존 기록은 H2이고 표본 평균 기준도 불명확합니다.
+- `328ms → 266ms`는 기존 집계·인덱스 튜닝 기록으로만 남기며, 원본 평균 불일치 때문에 확정된 SQL 성능 개선 수치로 재사용하지 않습니다.
+- 운영 서버, 동시 요청, 배치 갱신과 동시 조회, 더 큰 데이터에서의 성능은 이번 측정 범위에 포함하지 않았습니다.
+- 원본 보존 디렉터리: `/Users/kjh/orca/artifacts/bamboo-ranking-20261020/`. `benchmark.py`, `REPRODUCE.md`, `run-app.sh`, `http-raw.csv`, `http-summary.json`, `sql-summary.json`, 요청별 JSON·SQL 로그, `measurement-app.log`, SQL 프로파일·EXPLAIN 원문, 과거 회고 원문을 보존했습니다. 이 디렉터리는 Git 커밋 대상이 아니며, 핵심 HTTP 원시 표본은 아래에 함께 기록합니다.
+
+<details>
+<summary>HTTP 원시 표본 (워밍업 제외, 단위 ms)</summary>
+
+```text
+normal (ms, 측정 순서):
+39.313, 38.726, 38.730, 38.436, 38.193, 37.073, 37.297, 36.893, 36.011, 36.408
+35.696, 34.964, 35.657, 38.282, 35.663, 35.671, 36.028, 38.014, 38.473, 36.659
+37.161, 39.368, 37.502, 37.013, 36.696, 37.255, 36.747, 36.010, 36.465, 37.081
+37.700, 36.492, 35.815, 36.549, 36.664, 36.293, 35.547, 34.929, 34.814, 36.776
+35.472, 35.270, 36.190, 36.612, 37.106, 36.851, 35.158, 36.157, 35.985, 35.280
+fallback (ms, 측정 순서):
+214.721, 192.871, 181.548, 182.733, 182.636, 205.702, 164.212, 302.379, 167.147, 195.394
+190.342, 261.528, 170.855, 188.066, 183.834, 219.433, 170.438, 227.614, 210.948, 214.410
+181.154, 397.441, 196.521, 177.985, 202.167, 166.041, 172.484, 162.501, 179.180, 207.034
+```
+
+</details>
+
+아래 curl은 단일 요청 확인용이며, 위 수치는 반복 스크립트의 결과입니다.
+
 ```bash
-curl -w "\nTotal: %{time_total}s\n" -o /dev/null -s "http://localhost:8080/posts/rank?period=WEEKLY&size=5"
+curl --fail-with-body -s -o /dev/null -w "%{http_code} %{time_total}s\n" \
+  "http://127.0.0.1:18080/posts/rank?period=WEEKLY&size=5"
 ```
 
 ### EXPLAIN ANALYZE
+
+아래 저장소 SQL은 `USE bamboo`와 과거 시작일 `2026-07-20`이 고정되어 있습니다. 이번 재측정은 별도 사본의 DB명·기간을 위 조건으로 바꿔 실행했습니다. p6spy에서 추출한 실제 JPA 목록·count SQL도 별도로 EXPLAIN 했으며, 컬럼 수가 다른 `explain-popular-batch.sql`만으로 API 비용을 판단하지 않았습니다.
 
 ```bash
 mysql -uroot --vertical < explain-popular.sql
@@ -738,12 +817,14 @@ mysql -uroot --vertical < explain-popular-batch.sql
 ./gradlew clean test
 ```
 
-현재 확인 결과:
+기존 전체 테스트 기록:
 
 ```text
 BUILD SUCCESSFUL
 45 tests completed
 ```
+
+이번 성능 검증에서는 Java 21의 `./gradlew bootJar`와 `./gradlew test --tests '*RankingBatchServiceIntegrationTest'`를 실행해 빌드 성공 및 관련 테스트 3개 통과를 확인했습니다. 해당 기능 테스트는 H2이며, 위 성능 수치에는 사용하지 않았습니다.
 
 ## 실행 방법
 
