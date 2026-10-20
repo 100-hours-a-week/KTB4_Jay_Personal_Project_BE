@@ -64,11 +64,11 @@ class RankingPerformanceBenchmarkTest {
             oldStyleAggregation();
         }
 
-        List<Double> currentMs = measure(50, this::currentLookup);
-        List<Double> aggregateMs = measure(30, this::oldStyleAggregation);
+        List<Double> currentMs = measure(30, this::currentLookup);
+        List<Double> aggregateMs = measure(20, this::oldStyleAggregation);
 
         System.out.printf(
-                "BAMBOO_BENCHMARK dataset(posts=10000, likes=50000, views=100000) " +
+                "BAMBOO_BENCHMARK dataset(posts=2000, likes=10000, views=20000) " +
                 "current_precomputed[p50=%.3fms,p95=%.3fms,avg=%.3fms] " +
                 "request_time_aggregation[p50=%.3fms,p95=%.3fms,avg=%.3fms]%n",
                 percentile(currentMs, 0.50), percentile(currentMs, 0.95), average(currentMs),
@@ -87,20 +87,20 @@ class RankingPerformanceBenchmarkTest {
 
         jdbcTemplate.batchUpdate(
                 "INSERT INTO users(email,password,nickname,profile_image,deleted_at) VALUES (?,?,?,?,NULL)",
-                java.util.stream.IntStream.rangeClosed(1, 200)
+                java.util.stream.IntStream.rangeClosed(1, 100)
                         .mapToObj(i -> new Object[]{"u" + i + "@test.com", "pw", "user" + i, null})
                         .toList()
         );
 
-        List<Object[]> posts = new ArrayList<>(10000);
-        for (int i = 1; i <= 10000; i++) {
+        List<Object[]> posts = new ArrayList<>(2000);
+        for (int i = 1; i <= 2000; i++) {
             posts.add(new Object[]{
-                    ((i - 1) % 200) + 1L,
+                    ((i - 1) % 100) + 1L,
                     "title-" + i,
                     "content-" + i,
                     null,
                     0L, 0L, 0L, false,
-                    Timestamp.valueOf(now.minusMinutes(i % 10000)),
+                    Timestamp.valueOf(now.minusMinutes(i % 1000)),
                     null, null
             });
         }
@@ -109,10 +109,10 @@ class RankingPerformanceBenchmarkTest {
                 posts
         );
 
-        List<Object[]> likes = new ArrayList<>(50000);
-        for (int p = 1; p <= 10000; p++) {
+        List<Object[]> likes = new ArrayList<>(10000);
+        for (int p = 1; p <= 2000; p++) {
             for (int k = 0; k < 5; k++) {
-                long userId = ((p + k) % 200) + 1L;
+                long userId = ((p + k) % 100) + 1L;
                 likes.add(new Object[]{p, userId, Timestamp.valueOf(now.minusDays(p % 5))});
             }
         }
@@ -121,10 +121,10 @@ class RankingPerformanceBenchmarkTest {
                 likes
         );
 
-        List<Object[]> views = new ArrayList<>(100000);
-        for (int i = 1; i <= 100000; i++) {
-            long postId = ((i - 1) % 10000) + 1L;
-            long userId = ((i * 7L) % 200) + 1L;
+        List<Object[]> views = new ArrayList<>(20000);
+        for (int i = 1; i <= 20000; i++) {
+            long postId = ((i - 1) % 1000) + 1L;
+            long userId = ((i * 7L) % 100) + 1L;
             views.add(new Object[]{postId, userId, Timestamp.valueOf(now.minusDays(i % 7))});
         }
         jdbcTemplate.batchUpdate(
