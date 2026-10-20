@@ -581,7 +581,7 @@ project root
 - 인덱스 적용 후 집계 쿼리 실행 시간이 `328ms`에서 `266ms` 수준으로 줄어드는 것을 확인했습니다. 이 수치는 **집계 쿼리 단위 개선**이며 최종 해결은 아니었습니다.
 - 요청 시마다 집계하던 구조를 Spring Batch 기반 사전 집계로 전환해 `post_rankings` 테이블을 주기적으로 갱신했습니다.
 - 현재 `/posts/rank`는 `post_rankings`를 조회하고, 해당 기간 랭킹이 비어 있을 때만 `refreshRanking(period)`를 1회 실행하는 fallback 구조입니다.
-- 따라서 기존 약 `3.12s` 지연을 만든 요청 시점의 JOIN·GROUP BY·정렬 집계를 정상 경로에서 제거했습니다. 다만 **배치 전환 후 API의 동일 조건 end-to-end latency는 재측정 기록이 없어 숫자로 주장하지 않습니다.**
+- 따라서 기존 약 `3.12s` 지연을 만든 요청 시점의 JOIN·GROUP BY·정렬 집계를 정상 경로에서 제거했습니다. 추가로 GitHub Actions의 MySQL 8.4 Testcontainers 환경에서 게시글 10,000건·좋아요 50,000건·조회 이벤트 100,000건을 생성해 동일 프로세스 내 서비스 경로를 비교한 결과, 사전 집계 조회는 `P50 18.315ms / P95 26.061ms / 평균 22.035ms`, 요청 시점 집계는 `P50 68.674ms / P95 309.674ms / 평균 95.055ms`였습니다. 이 수치는 기존 운영 환경의 `3.12s`와 동일 조건의 직접 비교가 아니라, 현재 구조의 비용 차이를 확인하기 위한 통제된 재측정입니다.
 
 배운 점:
 
@@ -708,7 +708,7 @@ GitHub Actions에서 `./gradlew clean test`를 실행했을 때 Redis 서버가 
 
 | 항목 | 개선 전/문제 상황 | 개선 후/확인 결과 | 확인 방법 |
 | --- | --- | --- | --- |
-| 주간 인기글 API | 평균 약 `3.12s` | 정상 조회 경로를 `post_rankings` 사전 집계 결과 조회로 전환. 배치 전환 후 동일 조건 end-to-end latency는 미측정 | `curl -w`, 현재 코드 경로 확인 |
+| 주간 인기글 API | 과거 평균 약 `3.12s` | 요청 시 집계를 제거하고 `post_rankings` 사전 집계 조회로 전환. 별도 MySQL 8.4 통제 실험에서 사전 집계 조회 평균 `22.035ms` / P95 `26.061ms`, 요청 시점 집계 평균 `95.055ms` / P95 `309.674ms` | 과거 `curl -w` 기록 + GitHub Actions/MySQL Testcontainers 재측정 |
 | 인기글 집계 쿼리 | `328ms` | 인덱스 적용 후 `266ms` 수준 확인 | MySQL `EXPLAIN ANALYZE` |
 | 인기글 초기 조회 | 배치 전 `post_rankings`가 비면 빈 목록 반환 | 해당 period 랭킹이 없을 때 API에서 1회 즉시 집계 | `/posts/rank`, `post_rankings` count |
 | 배치 실행 주기 | 코드에 `10000ms` 하드코딩 | 설정값으로 분리해 로컬 `10000ms`, 운영 `300000ms` 적용 가능 | `application*.yml` |
@@ -716,7 +716,7 @@ GitHub Actions에서 `./gradlew clean test`를 실행했을 때 Redis 서버가 
 | 이미지 업로드 | 이미지 URL 직접 입력 필요 | `POST /images`로 파일 업로드 후 URL/Markdown 반환 | multipart 요청, `/uploads/**` 접근 |
 | 테스트 | CI에서 Redis 연결 실패로 `17 failed` | H2 테스트 프로파일 분리 후 `45 tests completed`, `BUILD SUCCESSFUL` | `./gradlew clean test --stacktrace` |
 
-최신 배포 환경 수치는 실행 데이터와 서버 상태에 따라 달라질 수 있어, 제출 전에는 같은 명령으로 한 번 더 재측정하는 것을 기준으로 잡았습니다.
+재측정은 GitHub Actions Ubuntu runner + MySQL 8.4 Testcontainers에서 게시글 10,000건·좋아요 50,000건·조회 이벤트 100,000건을 사용했습니다. warm-up 10회 후 사전 집계 조회 50회, 요청 시점 집계 30회를 측정했습니다. 이는 과거 배포 환경의 `3.12s`와 동일한 네트워크·서버 조건의 E2E 비교가 아니므로 두 값을 직접적인 before/after latency로 해석하지 않습니다.
 
 ### 인기글 API 시간 측정
 
