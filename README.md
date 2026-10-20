@@ -578,10 +578,10 @@ project root
 - `likes(created_at, post_id)` 계열 인덱스를 검토했습니다.
 - `post_view_events(viewed_at, post_id)` 인덱스를 추가했습니다.
 - MySQL `EXPLAIN ANALYZE`로 실행 계획을 확인했습니다.
-- 인덱스 적용 후 집계 쿼리 실행 시간이 `328ms`에서 `266ms` 수준으로 줄어드는 것을 확인했습니다.
-- 실시간 집계 대신 Spring Batch로 `post_rankings` 테이블을 주기적으로 갱신했습니다.
-- `post_rankings`에 해당 기간 데이터가 없으면 `/posts/rank` 조회 시 `refreshRanking(period)`를 한 번 실행해 빈 인기글 목록을 보완했습니다.
-- API는 집계 테이블을 조회하고 원본 게시글 상태를 한 번 더 확인합니다.
+- 인덱스 적용 후 집계 쿼리 실행 시간이 `328ms`에서 `266ms` 수준으로 줄어드는 것을 확인했습니다. 이 수치는 **집계 쿼리 단위 개선**이며 최종 해결은 아니었습니다.
+- 요청 시마다 집계하던 구조를 Spring Batch 기반 사전 집계로 전환해 `post_rankings` 테이블을 주기적으로 갱신했습니다.
+- 현재 `/posts/rank`는 `post_rankings`를 조회하고, 해당 기간 랭킹이 비어 있을 때만 `refreshRanking(period)`를 1회 실행하는 fallback 구조입니다.
+- 따라서 기존 약 `3.12s` 지연을 만든 요청 시점의 JOIN·GROUP BY·정렬 집계를 정상 경로에서 제거했습니다. 다만 **배치 전환 후 API의 동일 조건 end-to-end latency는 재측정 기록이 없어 숫자로 주장하지 않습니다.**
 
 배운 점:
 
@@ -708,7 +708,7 @@ GitHub Actions에서 `./gradlew clean test`를 실행했을 때 Redis 서버가 
 
 | 항목 | 개선 전/문제 상황 | 개선 후/확인 결과 | 확인 방법 |
 | --- | --- | --- | --- |
-| 주간 인기글 API | 평균 약 `3.12s` | 실시간 집계 대신 `post_rankings` 배치 조회 구조로 전환 | `curl -w`, p6spy 로그 |
+| 주간 인기글 API | 평균 약 `3.12s` | 정상 조회 경로를 `post_rankings` 사전 집계 결과 조회로 전환. 배치 전환 후 동일 조건 end-to-end latency는 미측정 | `curl -w`, 현재 코드 경로 확인 |
 | 인기글 집계 쿼리 | `328ms` | 인덱스 적용 후 `266ms` 수준 확인 | MySQL `EXPLAIN ANALYZE` |
 | 인기글 초기 조회 | 배치 전 `post_rankings`가 비면 빈 목록 반환 | 해당 period 랭킹이 없을 때 API에서 1회 즉시 집계 | `/posts/rank`, `post_rankings` count |
 | 배치 실행 주기 | 코드에 `10000ms` 하드코딩 | 설정값으로 분리해 로컬 `10000ms`, 운영 `300000ms` 적용 가능 | `application*.yml` |
