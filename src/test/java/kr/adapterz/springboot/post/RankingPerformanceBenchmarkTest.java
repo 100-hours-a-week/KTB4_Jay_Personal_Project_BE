@@ -92,7 +92,7 @@ class RankingPerformanceBenchmarkTest {
                         .toList()
         );
 
-        List<Object[]> posts = new ArrayList<>(50000);
+        List<Object[]> posts = new ArrayList<>(10000);
         for (int i = 1; i <= 10000; i++) {
             posts.add(new Object[]{
                     ((i - 1) % 100) + 1L,
@@ -109,7 +109,7 @@ class RankingPerformanceBenchmarkTest {
                 posts
         );
 
-        List<Object[]> likes = new ArrayList<>(10000);
+        List<Object[]> likes = new ArrayList<>(50000);
         for (int p = 1; p <= 10000; p++) {
             for (int k = 0; k < 5; k++) {
                 long userId = ((p + k) % 100) + 1L;
