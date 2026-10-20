@@ -49,8 +49,6 @@ dependencies {
 	runtimeOnly 'com.mysql:mysql-connector-j' // MySQL DB 연결을 위한 드라이버 추가
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.testcontainers:junit-jupiter:1.20.4'
-	testImplementation 'org.testcontainers:mysql:1.20.4'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 	implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -64,9 +62,6 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
-	testLogging {
-		showStandardStreams = true
-	}
 }
 
 test {
